@@ -1,0 +1,9 @@
+{
+	"node": true,
+	"eqeqeq": true,
+	"newcap": false,
+	"quotmark": "single",
+	"undef": true,
+	"unused": true,
+	"globalstrict": true
+}
