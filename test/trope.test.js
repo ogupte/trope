@@ -11,7 +11,36 @@ if (typeof require === 'undefined') {
 	var Trope = require('../trope.js');
 }
 
-describe('trope', function () {
+describe('Trope', function () {
+
+	describe('Trope Constructor', function () {
+		it('should create a raw Trope object');
+	});
+
+	describe('#define', function () {
+
+		it('should create a Trope constructor');
+
+		it('should create a null Trope constructor for a null/undefined definition');
+
+		describe('wrapping native js constructor', function () {
+			it('should create a Trope constructor for the given js constructor function');
+		});
+
+		describe('simple trope definition', function () {
+			it('should create a Trope constructor for the given trope definition');
+			it('should create a Trope constructor for the given prototype object without a constructor function');
+		});
+	});
+
+	describe('#Define', function () {
+
+		it('should create a Trope constructor');
+
+	});
+});
+
+xdescribe('trope', function () {
 
 	var Person = (function () {
 		function Person (name) {
