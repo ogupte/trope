@@ -395,7 +395,7 @@ var Trope = (function () {
 		forEachTropeInChain: function (callback) {
 			var trope = this;
 			if (trope.inherits) {
-				trope.inherits.forEachTropeInChain(callback);
+				trope.inherits.forEachTropeInChain(callback); // can possibly max out call stack in circular dependencies
 			}
 			callback(trope);
 		},
@@ -428,6 +428,7 @@ var Trope = (function () {
 	var OBJECT = 'object';
 	var FUNCTION = 'function';
 	var STRING = 'string';
+	// possibly implement this as a state machine to get rid of useless combinations
 	var arityMap = {
 		'0': function () {},
 		'1': function (arg0) {
@@ -454,7 +455,7 @@ var Trope = (function () {
 			var arg0Type = typeof arg0;
 			var arg1Type = typeof arg1;
 			var def;
-			if (arg0Type === OBJECT) {
+			if (arg0Type === OBJECT && arg0 !== null) {
 				def = arg0;
 			} else if (arg0Type === FUNCTION) {
 				if (arg0.trope) {
@@ -485,7 +486,7 @@ var Trope = (function () {
 			var arg1Type = typeof arg1;
 			var arg2Type = typeof arg2;
 			var def;
-			if (arg0Type === OBJECT) {
+			if (arg0Type === OBJECT && arg0 !== null) {
 				def = arg0;
 			} else if (arg0Type === FUNCTION) {
 				if (arg0.trope) {

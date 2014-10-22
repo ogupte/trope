@@ -11,32 +11,226 @@ if (typeof require === 'undefined') {
 	var Trope = require('../trope.js');
 }
 
-describe('Trope', function () {
+xdescribe('Trope Instance', function () {});
 
-	describe('Trope Constructor', function () {
-		it('should create a raw Trope object');
+describe('Trope Usage', function () {
+
+	describe('Creation', function () {
+		describe('Trope constructor', function () {
+			it('should create a Trope instance');
+			it('should return a constructor function with trope.getConstructor()');
+		});
+		describe('Trope.define', function () {
+			it('should return a Trope constructor function');
+		});
+		describe('Trope.Define', function () {
+			it('should return a Trope constructor function');
+			describe('0 arguments: ()', function () {
+				it('should return a Trope constructor for an object with no prototype');
+			});
+			describe('1 argument: (X)', function () {
+				describe('(prototype object)', function () {
+					it('should return a Trope constructor which uses the given prototype');
+				});
+				describe('(Trope definition)', function () {
+					it('should return a Trope constructor which uses the given Trope definition');
+				});
+				describe('(Trope constructor)', function () {
+					it('should return a Trope constructor which extends the given Trope');
+				});
+				describe('(native constructor)', function () {
+					it('should return a Trope constructor which uses the given constructor function');
+				});
+				describe('(type string)', function () {
+					it('should return a Trope constructor which uses the given type string');
+				});
+			});
+			describe('2 arguments: (X,Y)', function () {
+				describe('(Trope definition, prototype object)', function () {
+					it('should return a Trope constructor based on the given definition which uses the given prototype');
+				});
+				describe('(Trope definition, Trope constructor)', function () {
+					it('should return a Trope constructor based on the given Trope\'s definition where the given definition can modify');
+				});
+				describe('(Trope definition, native constructor)', function () {
+					it('should return a Trope constructor based on the given definition which uses the given constructor function');
+				});
+				describe('(Trope definition, type string)', function () {
+					it('should return a Trope constructor based on the given definition which uses the given type string');
+				});
+				describe('(Trope constructor, prototype object)', function () {
+					it('should return a Trope constructor based on the given Trope\'s definition which uses the given prototype');
+				});
+				describe('(Trope constructor, type string)', function () {
+					it('should return a Trope constructor based on the given Trope\'s definition which uses the given type string');
+				});
+				describe('(native constructor, prototype object)', function () {
+					it('should return a Trope constructor which uses the given constructor and prototype');
+				});
+				describe('(native constructor, type string)', function () {
+					it('should return a Trope constructor which uses the given constructor and type string');
+				});
+				describe('(type string, prototype object)', function () {
+					it('should return a Trope constructor which uses the given type string and prototype');
+				});
+				describe('(type string, Trope constructor)', function () {
+					it('should return a Trope constructor based on the given Trope\'s definition which uses the given type string');
+				});
+				describe('(type string, native constructor)', function () {
+					it('should return a Trope constructor which uses the given type string and constructor function');
+				});
+				describe('(null, prototype object)', function () {
+					it('should return a Trope constructor which uses the given prototype');
+				});
+				describe('(null, Trope constructor)', function () {
+					it('should return a Trope constructor which extends the given Trope');
+				});
+				describe('(null, native constructor)', function () {
+					it('should return a Trope constructor which uses the given constructor function');
+				});
+				describe('(null, type string)', function () {
+					it('should return a Trope constructor which uses the given type string');
+				});
+			});
+			describe('3 arguments: (X,Y,Z)', function () {
+				describe('(Trope definition, Trope constructor, type string)', function () {
+					it('should return a Trope constructor based on the given Trope\'s definition where the given definition can modify using the given type string');
+				});
+				describe('(Trope definition, native constructor, prototype object)', function () {
+					it('should return a Trope constructor based on the given definition which uses the given constructor function and prototype');
+				});
+				describe('(Trope definition, native constructor, type string)', function () {
+					it('should return a Trope constructor based on the given definition which uses the given constructor function and type string');
+				});
+				describe('(Trope definition, prototype object, native constructor)', function () {
+					it('should return a Trope constructor based on the given definition which uses the given constructor function and prototype');
+				});
+				describe('(Trope definition, prototype object, type string)', function () {
+					it('should return a Trope constructor based on the given definition which uses the given prototype and type string');
+				});
+				describe('(Trope definition, type string, Trope constructor)', function () {
+					it('should return a Trope constructor based on the given Trope\'s definition where the given definition can modify using the given type string');
+				});
+				describe('(Trope definition, type string, native constructor)', function () {
+					it('should return a Trope constructor based on the given definition which uses the given constructor function and type string');
+				});
+				describe('(Trope definition, type string, prototype object)', function () {
+					it('should return a Trope constructor based on the given definition which uses the given prototype and type string');
+				});
+				describe('(type string, native constructor, prototype object)', function () {
+					it('should return a Trope constructor which uses the given type string, constructor function, and prototype');
+				});
+				// other combinations are possible but would be silly to use
+			});
+			describe('more arguments: (X,Y,Z,…)', function () {
+				it('should only recognize the first three arguments');
+			});
+		});
+		describe('chained from another Trope (trope.extend)', function () {
+			it('should return a Trope constructor which inherits from the chained Trope object');
+		});
 	});
 
-	describe('#define', function () {
-
-		it('should create a Trope constructor');
-
-		it('should create a null Trope constructor for a null/undefined definition');
-
-		describe('wrapping native js constructor', function () {
-			it('should create a Trope constructor for the given js constructor function');
+	describe('Compatability', function () {
+		describe('using native constructor functions', function () {
+			it('should create a Trope defined with a native constructor function');
 		});
-
-		describe('simple trope definition', function () {
-			it('should create a Trope constructor for the given trope definition');
-			it('should create a Trope constructor for the given prototype object without a constructor function');
+		describe('using only prototype objects', function () {
+			it('should create a Trope defined with a prototype object');
+		});
+		describe('using Trope constructors', function () {
+			it('should create a Trope defined with another Trope constructor');
+		});
+		describe('using Trope objects', function () {
+			it('should create a Trope defined with another Trope instance');
 		});
 	});
 
-	describe('#Define', function () {
+	describe('Inheritance', function () {
+		describe('shallow', function () {
+			it('should support shallow (<3) inheritance chains');
+		});
+		describe('deep', function () {
+			it('should support deep (3+) inhertance chains');
+		});
+		describe('multiple', function () {
+			it('should support multiple inheritance by proxying parents into the current inheritance chain');
+		});
+	});
 
-		it('should create a Trope constructor');
+	describe('Configuration: useSuper', function () {
+		describe('default config value', function () {
+			it('should default to false when no definition is passed in');
+			it('should default to true when not specified in the given definition');
+		});
+		describe('useSuper: true', function () {
+			describe('simple', function () {
+				it('should create a Trope which has a super accessor in the constructor');
+				it('should create a Trope which has a super accessor in any overwritten methods');
+			});
+			describe('with inheritance', function () {
+				describe('homogeneous (all parents have useSuper set to true in their definitions) & mixed (parents have both true and false values for useSuper in their defintions)', function () {
+					it('should make super available to all constructors in the inheritance chain');
+					it('should make super available to all overwritten methods in the inheritance chain');
+				});
+			});
+		});
+		describe('useSuper: false', function () {
+			describe('simple', function () {
+				it('should create a Trope which does not use a super accessor in the constructor');
+				it('should create a Trope which does not use a super accessor in any overwritten methods');
+			});
+			describe('with inheritance', function () {
+				describe('homogeneous', function () {
+					it('should create a Trope which does not use a super accessor in any of the constructors in the inheritance chain');
+					it('should create a Trope which does not use a super accessor in any overwritten methods');
+				});
+				describe('mixed (parents have both true and false values for useSuper in their defintions)', function () {
+					it('should make super available to all constructors in the inheritance chain');
+					it('should make super available to all overwritten methods in the inheritance chain');
+				});
+			});
+		});
+	});
 
+	describe('Configuration: privacy', function () {
+		describe('default config value', function () {
+			it('should default to false when not specified in the given definition and it doesn\'t inherit');
+			it('should default to whatever value is in the definition the Trope inherits from');
+		});
+		describe('privacy: true', function () {
+			describe('simple', function () {
+				it('should create a Trope in which the constructor and methods access the private context with `this`');
+				it('should create a Trope in which the constructor and methods access the public context with `this.exports`');
+			});
+			describe('with inheritance', function () {
+				describe('homogeneous (all parents have privacy set to true in their definitions) & mixed (parents have both true and false values for privacy in their defintions)', function () {
+					it('should create a Trope in which all constructors and methods access the private context with `this`');
+					it('should create a Trope in which all constructors and methods access the public context with `this.exports`');
+				});
+			});
+		});
+		describe('privacy: false', function () {
+			describe('simple', function () {
+				it('should create a Trope in which the constructor and methods access the public context with `this`');
+			});
+			describe('with inheritance', function () {
+				describe('homogeneous', function () {
+					it('should create a Trope in which all constructors and methods access the public context with `this`');
+				});
+				describe('mixed (parents have both true and false values for privacy in their defintions)', function () {
+					it('should create a Trope in which those constructors and methods whose definitions have privacy set to true are able to access the private context with `this` and public context with `this.exports`');
+					it('should create a Trope in which those constructors and methods whose definitions have privacy set to false are not able to access the private context and can access the public context with `this`');
+				});
+			});
+		});
+	});
+
+	describe('Scenarios', function () {
+		describe('simple', function () {});
+		describe('complex', function () {});
+		describe('weird', function () {});
+		describe('insane', function () {});
 	});
 });
 
