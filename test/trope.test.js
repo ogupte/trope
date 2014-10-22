@@ -12,23 +12,48 @@ if (typeof require === 'undefined') {
 }
 
 xdescribe('Trope Instance', function () {});
-
+//, function () {}
 describe('Trope Usage', function () {
 
 	describe('Creation', function () {
 		describe('Trope constructor', function () {
-			it('should create a Trope instance');
-			it('should return a constructor function with trope.getConstructor()');
+			it('should create a Trope instance', function () {
+				var nullTrope = new Trope();
+				expect(nullTrope).to.be.an.instanceOf(Trope);
+			});
+			it('should return a constructor function with trope.getConstructor()', function () {
+				var nullTrope = new Trope();
+				var NullConstructor = nullTrope.getConstructor();
+				expect(NullConstructor).to.be.a.function;
+				expect(NullConstructor).to.have.property('prototype');
+				expect(NullConstructor.prototype).to.equal(nullTrope.finalProto);
+			});
 		});
 		describe('Trope.define', function () {
-			it('should return a Trope constructor function');
+			it('should return a Trope constructor function', function () {
+				var NullConstructor = Trope.define();
+				expect(NullConstructor).to.be.a.function;
+				expect(NullConstructor).to.have.property('prototype');
+				expect(NullConstructor.prototype).to.equal(NullConstructor.trope.finalProto);
+			});
 		});
 		describe('Trope.Define', function () {
-			it('should return a Trope constructor function');
-			describe('0 arguments: ()', function () {
-				it('should return a Trope constructor for an object with no prototype');
+			it('should return a Trope constructor function', function () {
+				var NullConstructor = Trope.Define(null);
+				expect(NullConstructor).to.be.a.function;
+				expect(NullConstructor).to.have.property('prototype');
+				expect(NullConstructor.prototype).to.equal(NullConstructor.trope.finalProto);
 			});
-			describe('1 argument: (X)', function () {
+			describe('0 arguments: ()', function () {
+				it('should return a Trope constructor for an object with no prototype', function () {
+					var NullConstructor = Trope.Define();
+					expect(NullConstructor).to.be.a.function;
+					expect(NullConstructor).to.have.property('prototype');
+					expect(NullConstructor.prototype).to.equal(NullConstructor.trope.finalProto);
+					expect(Object.getPrototypeOf(NullConstructor.trope.finalProto)).to.be.null;
+				});
+			});
+			/*describe('1 argument: (X)', function () {
 				describe('(prototype object)', function () {
 					it('should return a Trope constructor which uses the given prototype');
 				});
@@ -124,25 +149,123 @@ describe('Trope Usage', function () {
 			});
 			describe('more arguments: (X,Y,Z,…)', function () {
 				it('should only recognize the first three arguments');
-			});
+			});*/
 		});
-		describe('chained from another Trope (trope.extend)', function () {
-			it('should return a Trope constructor which inherits from the chained Trope object');
+		describe('chained from another Trope (trope.createChildTrope)', function () {
+			it('should return a Trope constructor which inherits from the chained Trope object', function () {
+				var nullTrope = new Trope();
+				var childOfNullTrope = nullTrope.createChildTrope({
+					type: 'ChildOfNull'
+				});
+				expect(childOfNullTrope).to.be.an.instanceOf(Trope);
+				expect(childOfNullTrope.inherits).to.equal(nullTrope);
+				expect(Object.getPrototypeOf(childOfNullTrope.finalProto)).to.equal(nullTrope.finalProto);
+				expect(Object.getPrototypeOf(childOfNullTrope.finalProto).constructor).to.equal(nullTrope.constr);
+			});
 		});
 	});
 
 	describe('Compatability', function () {
+		// JavaScript Native Constructor - Person
+		var Person = (function () {
+			function Person (name, age) {
+				if (name) {
+					this.setName(name);
+				}
+				if (age !== undefined) {
+					this.setAge(age);
+				}
+			}
+			Person.prototype.setName = function (name) {
+				this.name = name;
+			};
+			Person.prototype.setAge = function (age) {
+				this.age = age;
+			};
+			return Person;
+		}());
+
+		// prototype object for a Person
+		var personPrototype = {
+			init: function (name, age) {
+				this.setName(name);
+				this.setAge(age);
+			},
+			setName: function (name) {
+				this.name = name;
+			},
+			setAge: function (age) {
+				this.age = age;
+			}
+		};
+
 		describe('using native constructor functions', function () {
-			it('should create a Trope defined with a native constructor function');
+			it('should create a Trope defined with a native constructor function', function () {
+				var PersonTropeConstructor = Trope.define({
+					constructor: Person
+				});
+				var person = new PersonTropeConstructor('Test Name', 99);
+				expect(PersonTropeConstructor).to.be.a.function;
+				expect(PersonTropeConstructor).to.have.property('prototype');
+				expect(PersonTropeConstructor.prototype).to.equal(Person.prototype);
+				expect(person).to.be.an.instanceOf(Person);
+				expect(person).to.have.property('name');
+				expect(person.name).to.equal('Test Name');
+				expect(person).to.have.property('age');
+				expect(person.age).to.equal(99);
+			});
 		});
 		describe('using only prototype objects', function () {
-			it('should create a Trope defined with a prototype object');
+			it('should create a Trope defined with a prototype object', function () {
+				var Person = Trope.define({
+					prototype: personPrototype
+				});
+				var person = new Person();
+				person.init('Test Name', 99);
+				expect(Person).to.be.a.function;
+				expect(Person).to.have.property('prototype');
+				expect(Person.prototype).to.equal(personPrototype);
+				expect(person).to.be.an.instanceOf(Person);
+				expect(person).to.have.property('name');
+				expect(person.name).to.equal('Test Name');
+				expect(person).to.have.property('age');
+				expect(person.age).to.equal(99);
+			});
 		});
 		describe('using Trope constructors', function () {
-			it('should create a Trope defined with another Trope constructor');
+			// a Trope constructor
+			var PersonTropeConstructor = Trope.define({
+				constructor: Person
+			});
+
+			it('should create a Trope defined with another Trope constructor', function () {
+				var XPersonTropeConstructor = Trope.define({
+					constructor: PersonTropeConstructor
+				});
+				var person = new XPersonTropeConstructor('Test Name', 99);
+				expect(XPersonTropeConstructor).to.be.a.function;
+				expect(XPersonTropeConstructor).to.have.property('prototype');
+				expect(XPersonTropeConstructor.prototype).to.equal(Person.prototype);
+				expect(person).to.be.an.instanceOf(Person);
+				expect(person).to.be.an.instanceOf(PersonTropeConstructor);
+				expect(person).to.be.an.instanceOf(XPersonTropeConstructor);
+				expect(person).to.have.property('name');
+				expect(person.name).to.equal('Test Name');
+				expect(person).to.have.property('age');
+				expect(person.age).to.equal(99);
+			});
 		});
-		describe('using Trope objects', function () {
-			it('should create a Trope defined with another Trope instance');
+		xdescribe('using Trope objects', function () {
+			// a Trope instance
+			var personTrope = new Trope({
+				constructor: Person
+			});
+
+			it('should create a Trope defined with another Trope instance', function () {
+				var XPersonTropeConstructor = Trope.define({
+					trope: personTrope
+				});
+			});
 		});
 	});
 
