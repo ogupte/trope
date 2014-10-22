@@ -582,34 +582,204 @@ describe('Trope Usage', function () {
 
 	describe('Configuration: useSuper', function () {
 		describe('default config value', function () {
-			it('should default to false when no definition is passed in');
-			it('should default to true when not specified in the given definition');
+			it('should default to false when no definition is passed in', function () {
+				var nullTrope = new Trope();
+				expect(nullTrope).to.be.an.instanceOf(Trope);
+				expect(nullTrope).to.have.property('useSuper', false);
+			});
+			it('should default to true when not specified in the given definition', function () {
+				var nullTrope = new Trope({});
+				expect(nullTrope).to.be.an.instanceOf(Trope);
+				expect(nullTrope).to.have.property('useSuper', true);
+			});
 		});
 		describe('useSuper: true', function () {
 			describe('simple', function () {
-				it('should create a Trope which has a super accessor in the constructor');
-				it('should create a Trope which has a super accessor in any overwritten methods');
+				var Organism = Trope.define({
+					useSuper: true,
+					constructor: function Organism (name) {
+						this.name = name;
+					},
+					prototype: {
+						getLongName: function () {
+							return 'Organism';
+						}
+					}
+				});
+				it('should create a Trope which has a super accessor in the constructor and any overwritten methods', function () {
+					var Animal = Trope.define({
+						useSuper: true,
+						inherits: Organism,
+						constructor: function Animal (name) {
+							expect(this.super).to.exist;
+							this.super(name);
+							this.kingdom = 'Animalia';
+						},
+						prototype: {
+							getLongName: function () {
+								expect(this.super).to.exist;
+								return this.kingdom;
+							}
+						}
+					});
+					var animal = new Animal('Pumbaa');
+					animal.getLongName();
+				});
 			});
 			describe('with inheritance', function () {
 				describe('homogeneous (all parents have useSuper set to true in their definitions) & mixed (parents have both true and false values for useSuper in their defintions)', function () {
-					it('should make super available to all constructors in the inheritance chain');
-					it('should make super available to all overwritten methods in the inheritance chain');
+					it('should make super available to the constructors and all overwritten methods in the inheritance chain except the root', function () {
+						var Organism = Trope.define({
+							useSuper: true,
+							constructor: function Organism (name) {
+								this.name = name;
+							},
+							prototype: {
+								getLongName: function () {
+									expect(this.super).to.not.exist;
+									return 'Organism';
+								}
+							}
+						});
+						var Animal = Trope.define({
+							useSuper: true,
+							inherits: Organism,
+							constructor: function Animal (name) {
+								expect(this.super).to.exist;
+								this.super(name);
+								this.kingdom = 'Animalia';
+							},
+							prototype: {
+								getLongName: function () {
+									expect(this.super).to.exist;
+									var superMethodReturns = this.super();
+									return this.kingdom;
+								}
+							}
+						});
+						var animal = new Animal('Pumbaa');
+						animal.getLongName();
+					});
 				});
 			});
 		});
 		describe('useSuper: false', function () {
 			describe('simple', function () {
-				it('should create a Trope which does not use a super accessor in the constructor');
-				it('should create a Trope which does not use a super accessor in any overwritten methods');
+				var Organism = Trope.define({
+					useSuper: false,
+					constructor: function Organism (name) {
+						this.name = name;
+					},
+					prototype: {
+						getLongName: function () {
+							return 'Organism';
+						}
+					}
+				});
+				it('should create a Trope which does not use a super accessor in the constructor or any overwritten methods', function () {
+					var Animal = Trope.define({
+						useSuper: false,
+						inherits: Organism,
+						constructor: function Animal (name) {
+							expect(this.super).to.not.exist;
+							Organism.trope.constr.call(this, name);
+							this.kingdom = 'Animalia';
+						},
+						prototype: {
+							getLongName: function () {
+								expect(this.super).to.not.exist;
+								return this.kingdom;
+							}
+						}
+					});
+					var animal = new Animal('Pumbaa');
+					animal.getLongName();
+				});
 			});
 			describe('with inheritance', function () {
 				describe('homogeneous', function () {
-					it('should create a Trope which does not use a super accessor in any of the constructors in the inheritance chain');
-					it('should create a Trope which does not use a super accessor in any overwritten methods');
+					it('should create a Trope which does not use a super accessor in any of the constructors in the inheritance chain or overwritten methods', function () {
+						var Organism = Trope.define({
+							useSuper: false,
+							constructor: function Organism (name) {
+								expect(this.super).to.not.exist;
+								this.name = name;
+							},
+							prototype: {
+								getLongName: function () {
+									expect(this.super).to.not.exist;
+									return 'Organism';
+								}
+							}
+						});
+						var Animal = Trope.define({
+							useSuper: false,
+							inherits: Organism,
+							constructor: function Animal (name) {
+								expect(this.super).to.not.exist;
+								Organism.trope.constr.call(this, name);
+								this.kingdom = 'Animalia';
+							},
+							prototype: {
+								getLongName: function () {
+									expect(this.super).to.not.exist;
+									return this.kingdom;
+								}
+							}
+						});
+						var animal = new Animal('Pumbaa');
+						animal.getLongName();
+					});
 				});
 				describe('mixed (parents have both true and false values for useSuper in their defintions)', function () {
-					it('should make super available to all constructors in the inheritance chain');
-					it('should make super available to all overwritten methods in the inheritance chain');
+					it('should make super available to all constructors in the inheritance chain and overwritten methods except the root', function () {
+						var Organism = Trope.define({
+							useSuper: false,
+							constructor: function Organism (name) {
+								expect(this.super).to.not.exist;
+								this.name = name;
+							},
+							prototype: {
+								getLongName: function () {
+									expect(this.super).to.not.exist;
+									return 'Organism';
+								}
+							}
+						});
+						var Animal = Trope.define({
+							useSuper: true,
+							inherits: Organism,
+							constructor: function Animal (name) {
+								expect(this.super).to.exist;
+								this.super(name);
+								this.kingdom = 'Animalia';
+							},
+							prototype: {
+								getLongName: function () {
+									expect(this.super).to.exist;
+									var superMethodReturns = this.super();
+									return this.kingdom;
+								}
+							}
+						});
+						var Vertebrate = Trope.define({
+							useSuper: false,
+							inherits: Animal,
+							constructor: function Vertebrate (name) {
+								expect(this.super).to.exist;
+								this.super(name);
+								this.phylum = 'Chordata';
+							},
+							prototype: {
+								getLongName: function () {
+									expect(this.super).to.exist;
+									return this.super() + ' ' + this.phylum;
+								}
+							}
+						});
+						var vertebrate = new Vertebrate('Pumbaa');
+						vertebrate.getLongName();
+					});
 				});
 			});
 		});
