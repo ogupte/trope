@@ -277,6 +277,9 @@ var Trope = (function () {
 								if (!topOfStack) {
 									return undefined;
 								} else {
+									if (!topOfStack.func) {
+										return undefined;
+									}
 									if (topOfStack.trope && topOfStack.trope.isPrivate) {
 										targetCtx = getPrivateCtx();
 									}
@@ -332,8 +335,9 @@ var Trope = (function () {
 					trope.forEachTropeInChain(function (currentTrope) {
 						currentTrope.forEachMethod(function (method, methodName) {
 							var superMethod;
-							if (pubCtx.hasOwnProperty && pubCtx.hasOwnProperty(methodName)) {
-								superMethod = pubCtx[methodName];
+								if (pubCtx.hasOwnProperty && pubCtx.hasOwnProperty(methodName)) {
+									superMethod = pubCtx[methodName];
+								}
 								pubCtx[methodName] = function () {
 									var args = arguments;
 									var returnValue;
@@ -346,13 +350,6 @@ var Trope = (function () {
 									superStack.pop();
 									return returnValue;
 								};
-							} else {
-								if (currentTrope.isPrivate) {
-									pubCtx[methodName] = method.bind(getPrivateCtx());
-								} else {
-									pubCtx[methodName] = method.bind(pubCtx);
-								}
-							}
 						});
 					});
 				} else {
