@@ -405,14 +405,26 @@ var Trope = (function () {
 				forEachMethod(proto, callback);
 			});
 		},
+		createChildTrope: function (def) {
+			var trope = this;
+			def = def || {};
+			def.inherits = trope;
+			return new Trope(def);
+		},
+		defineChild: function (def) {
+			var trope = this;
+			var childTrope = trope.createChildTrope(def);
+			return childTrope.getConstructor();
+		},
 		extend: function () {
 			var trope = this;
 			var args = arguments;
 			var arity = args.length;
 			var supportedArityHandler = arityMap[arity] || arityMap['?'];
 			var def = supportedArityHandler.apply(arityMap, args);
-			def.inherits = trope;
-			return Trope.define(def);
+			// def.inherits = trope;
+			// return Trope.define(def);
+			return trope.defineChild(def);
 		},
 		getDefinition: function () {
 			var trope = this;
