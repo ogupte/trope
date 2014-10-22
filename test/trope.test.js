@@ -12,7 +12,7 @@ if (typeof require === 'undefined') {
 }
 
 xdescribe('Trope Instance', function () {});
-//, function () {}
+
 describe('Trope Usage', function () {
 
 	describe('Creation', function () {
@@ -269,15 +269,314 @@ describe('Trope Usage', function () {
 		});
 	});
 
+	//Organism > Animal > Vertebrate > Mammal > Carnivore > Candidae > Canine > Wolf > Dog > Dachshund
 	describe('Inheritance', function () {
+		var Organism;
+		var Animal;
+		var Vertebrate;
+		var Mammal;
+		var Carnivore;
+		var Canine;
+		var Dog;
+		var Breed;
+
+		Organism = Trope.define({
+			constructor: function Organism (name) {
+				this.name = name;
+			},
+			prototype: {
+				getLongName: function () {
+					return 'Organism';
+				}
+			}
+		});
+
 		describe('shallow', function () {
-			it('should support shallow (<3) inheritance chains');
+			it('should support shallow (<3) inheritance chains', function () {
+				Animal = Trope.define({
+					inherits: Organism,
+					constructor: function Animal (name) {
+						this.super(name);
+						this.kingdom = 'Animalia';
+					},
+					prototype: {
+						getLongName: function () {
+							return this.kingdom;
+						}
+					}
+				});
+				var animal = new Animal('Pumbaa');
+
+				expect(animal).to.be.an.instanceOf(Organism);
+				expect(animal).to.be.an.instanceOf(Animal);
+				expect(animal).have.property('name');
+				expect(animal.name).to.equal('Pumbaa');
+				expect(animal).have.property('kingdom');
+				expect(animal.kingdom).to.equal('Animalia');
+				expect(animal.getLongName()).to.equal('Animalia');
+
+				Vertebrate = Trope.define({
+					inherits: Animal,
+					constructor: function Vertebrate (name) {
+						this.super(name);
+						this.phylum = 'Chordata';
+					},
+					prototype: {
+						getLongName: function () {
+							return this.super() + ' ' + this.phylum;
+						}
+					}
+				});
+				var vertebrate = new Vertebrate('Pumbaa');
+
+				expect(vertebrate).to.be.an.instanceOf(Organism);
+				expect(vertebrate).to.be.an.instanceOf(Animal);
+				expect(vertebrate).to.be.an.instanceOf(Vertebrate);
+				expect(vertebrate).have.property('name');
+				expect(vertebrate.name).to.equal('Pumbaa');
+				expect(vertebrate).have.property('kingdom');
+				expect(vertebrate.kingdom).to.equal('Animalia');
+				expect(vertebrate).have.property('phylum');
+				expect(vertebrate.phylum).to.equal('Chordata');
+				expect(vertebrate.getLongName()).to.equal('Animalia Chordata');
+			});
 		});
 		describe('deep', function () {
-			it('should support deep (3+) inhertance chains');
+			it('should support deep (3+) inhertance chains', function () {
+				Mammal = Trope.define({
+					inherits: Vertebrate,
+					constructor: function Mammal (name) {
+						this.super(name);
+						this.class = 'Mammalia';
+					},
+					prototype: {
+						getLongName: function () {
+							return this.super() + ' ' + this.class;
+						}
+					}
+				});
+				var mammal = new Mammal('Pumbaa');
+
+				expect(mammal).to.be.an.instanceOf(Organism);
+				expect(mammal).to.be.an.instanceOf(Animal);
+				expect(mammal).to.be.an.instanceOf(Vertebrate);
+				expect(mammal).to.be.an.instanceOf(Mammal);
+				expect(mammal).have.property('name');
+				expect(mammal.name).to.equal('Pumbaa');
+				expect(mammal).have.property('kingdom');
+				expect(mammal.kingdom).to.equal('Animalia');
+				expect(mammal).have.property('phylum');
+				expect(mammal.phylum).to.equal('Chordata');
+				expect(mammal).have.property('class');
+				expect(mammal.class).to.equal('Mammalia');
+				expect(mammal.getLongName()).to.equal('Animalia Chordata Mammalia');
+
+				Carnivore = Trope.define({
+					inherits: Mammal,
+					constructor: function Carnivore (name) {
+						this.super(name);
+						this.order = 'Carnivora';
+					},
+					prototype: {
+						getLongName: function () {
+							return this.super() + ' ' + this.order;
+						}
+					}
+				});
+				var carnivore = new Carnivore('Pumbaa');
+
+				expect(carnivore).to.be.an.instanceOf(Organism);
+				expect(carnivore).to.be.an.instanceOf(Animal);
+				expect(carnivore).to.be.an.instanceOf(Vertebrate);
+				expect(carnivore).to.be.an.instanceOf(Mammal);
+				expect(carnivore).to.be.an.instanceOf(Carnivore);
+				expect(carnivore).have.property('name');
+				expect(carnivore.name).to.equal('Pumbaa');
+				expect(carnivore).have.property('kingdom');
+				expect(carnivore.kingdom).to.equal('Animalia');
+				expect(carnivore).have.property('phylum');
+				expect(carnivore.phylum).to.equal('Chordata');
+				expect(carnivore).have.property('class');
+				expect(carnivore.class).to.equal('Mammalia');
+				expect(carnivore).have.property('order');
+				expect(carnivore.order).to.equal('Carnivora');
+				expect(carnivore.getLongName()).to.equal('Animalia Chordata Mammalia Carnivora');
+
+				Canine = Trope.define({
+					inherits: Carnivore,
+					constructor: function Canine (name) {
+						this.super(name);
+						this.genus = 'Canis';
+					},
+					prototype: {
+						getLongName: function () {
+							return this.super() + ' ' + this.genus;
+						}
+					}
+				});
+				var canine = new Canine('Pumbaa');
+
+				expect(canine).to.be.an.instanceOf(Organism);
+				expect(canine).to.be.an.instanceOf(Animal);
+				expect(canine).to.be.an.instanceOf(Vertebrate);
+				expect(canine).to.be.an.instanceOf(Mammal);
+				expect(canine).to.be.an.instanceOf(Carnivore);
+				expect(canine).to.be.an.instanceOf(Canine);
+				expect(canine).have.property('name');
+				expect(canine.name).to.equal('Pumbaa');
+				expect(canine).have.property('kingdom');
+				expect(canine.kingdom).to.equal('Animalia');
+				expect(canine).have.property('phylum');
+				expect(canine.phylum).to.equal('Chordata');
+				expect(canine).have.property('class');
+				expect(canine.class).to.equal('Mammalia');
+				expect(canine).have.property('order');
+				expect(canine.order).to.equal('Carnivora');
+				expect(canine).have.property('genus');
+				expect(canine.genus).to.equal('Canis');
+				expect(canine.getLongName()).to.equal('Animalia Chordata Mammalia Carnivora Canis');
+
+				Dog = Trope.define({
+					inherits: Canine,
+					constructor: function Dog (name) {
+						this.super(name);
+						this.species = 'familiaris';
+					},
+					prototype: {
+						getLongName: function () {
+							return this.super() + ' ' + this.species;
+						}
+					}
+				});
+				var dog = new Dog('Pumbaa');
+
+				expect(dog).to.be.an.instanceOf(Organism);
+				expect(dog).to.be.an.instanceOf(Animal);
+				expect(dog).to.be.an.instanceOf(Vertebrate);
+				expect(dog).to.be.an.instanceOf(Mammal);
+				expect(dog).to.be.an.instanceOf(Carnivore);
+				expect(dog).to.be.an.instanceOf(Canine);
+				expect(dog).to.be.an.instanceOf(Dog);
+				expect(dog).have.property('name');
+				expect(dog.name).to.equal('Pumbaa');
+				expect(dog).have.property('kingdom');
+				expect(dog.kingdom).to.equal('Animalia');
+				expect(dog).have.property('phylum');
+				expect(dog.phylum).to.equal('Chordata');
+				expect(dog).have.property('class');
+				expect(dog.class).to.equal('Mammalia');
+				expect(dog).have.property('order');
+				expect(dog.order).to.equal('Carnivora');
+				expect(dog).have.property('genus');
+				expect(dog.genus).to.equal('Canis');
+				expect(dog).have.property('species');
+				expect(dog.species).to.equal('familiaris');
+				expect(dog.getLongName()).to.equal('Animalia Chordata Mammalia Carnivora Canis familiaris');
+
+				Breed = Trope.define({
+					inherits: Dog,
+					constructor: function Breed (name) {
+						this.super(name);
+						this.breed = 'Dachshund';
+					},
+					prototype: {
+						getLongName: function () {
+							return this.super() + ' (' + this.breed + ')';
+						}
+					}
+				});
+				var breed = new Breed('Pumbaa');
+
+				expect(breed).to.be.an.instanceOf(Organism);
+				expect(breed).to.be.an.instanceOf(Animal);
+				expect(breed).to.be.an.instanceOf(Vertebrate);
+				expect(breed).to.be.an.instanceOf(Mammal);
+				expect(breed).to.be.an.instanceOf(Carnivore);
+				expect(breed).to.be.an.instanceOf(Canine);
+				expect(breed).to.be.an.instanceOf(Dog);
+				expect(breed).to.be.an.instanceOf(Breed);
+				expect(breed).have.property('name');
+				expect(breed.name).to.equal('Pumbaa');
+				expect(breed).have.property('kingdom');
+				expect(breed.kingdom).to.equal('Animalia');
+				expect(breed).have.property('phylum');
+				expect(breed.phylum).to.equal('Chordata');
+				expect(breed).have.property('class');
+				expect(breed.class).to.equal('Mammalia');
+				expect(breed).have.property('order');
+				expect(breed.order).to.equal('Carnivora');
+				expect(breed).have.property('genus');
+				expect(breed.genus).to.equal('Canis');
+				expect(breed).have.property('species');
+				expect(breed.species).to.equal('familiaris');
+				expect(breed).have.property('breed');
+				expect(breed.breed).to.equal('Dachshund');
+				expect(breed.getLongName()).to.equal('Animalia Chordata Mammalia Carnivora Canis familiaris (Dachshund)');
+			});
 		});
 		describe('multiple', function () {
-			it('should support multiple inheritance by proxying parents into the current inheritance chain');
+			var EventEmitter = Trope.draft({
+				privacy: true
+			}, function EventEmitter () {
+				this.eventMap = {};
+			}, {
+				on: function (name, handler) {
+					if (this.eventMap[name] === undefined) {
+						this.eventMap[name] = [];
+					}
+					this.eventMap[name].push(handler);
+				},
+				emit: function (name) {
+					var i;
+					var args;
+					if (this.eventMap[name]) {
+						args = [];
+						for (i=1; i<arguments.length; i++) {
+							args.push(arguments[i]);
+						}
+						for (i=0; i<this.eventMap[name].length; i++) {
+							this.eventMap[name][i].apply(this.exports, args);
+						}
+					}
+				}
+			});
+
+			var Logger = Trope.draft({
+				privacy: true
+			}, function Logger (prefix) {
+				this.prefix = prefix;
+			}, {
+				log: function (msg) {
+					console.log(this.prefix + ': ' + msg);
+				}
+			});
+
+			xit('should support multiple inheritance by proxying parents into the current inheritance chain', function (done) {
+				var LoggingEventedDog = Trope.Define(EventEmitter).extend(Logger).extend(Dog).extend({
+					constructor: function LoggingEventedDog(name) {
+						this.super.as(EventEmitter)();
+						this.super.as(Logger)(name);
+						this.super.as(Dog)(name);
+						this.on('log', function (msg) {
+							this.log(msg);
+							//this.log(this.getLongName());// this fails since it calls this.super() and not getting what it expects
+						});
+					}
+				});
+				var loggingEventedDog = new LoggingEventedDog('Pumbaa');
+				loggingEventedDog.on('log', function (msg) {
+					expect(msg).to.equal('w000f!!');
+					done();
+				});
+				expect(loggingEventedDog).to.be.an.instanceOf(EventEmitter);
+				//these don't work because this isn't true multiple inheritance
+				//e.g. it's not an instance of 'Logger', it is an instance of 'Logger that extends EventEmitter'
+				// expect(loggingEventedDog).to.be.an.instanceOf(Logger);
+				// expect(loggingEventedDog).to.be.an.instanceOf(Animal);
+				// expect(loggingEventedDog).to.be.an.instanceOf(Organism);
+				loggingEventedDog.emit('log', 'w000f!!');
+				console.log('%O',loggingEventedDog);
+			});
 		});
 	});
 
