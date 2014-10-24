@@ -11,7 +11,172 @@ if (typeof require === 'undefined') {
 	var Trope = require('../trope.js');
 }
 
-xdescribe('Trope Instance', function () {});
+describe('Trope Static', function () {
+	describe('Trope.define([definition])', function () {
+		it('should return a Trope constructor function', function () {
+			var definition = {
+				someConfig: true
+			};
+			var TestTrope = Trope.define(definition);
+			expect(TestTrope).to.be.a.function;
+			expect(TestTrope).to.have.property('trope');
+			var TestTropeInstance = TestTrope.trope;
+			expect(TestTropeInstance).to.be.an.instanceOf(Trope);
+			expect(TestTropeInstance).to.have.property('def');
+			expect(TestTropeInstance.def).to.equal(definition);
+		});
+	});
+	describe('Trope.Define([*])', function () {
+		it('should return a Trope constructor function', function () {
+			var testPrototype = {
+				someMethod: function () {}
+			};
+			var TestTrope = Trope.Define(testPrototype);
+			expect(TestTrope).to.be.a.function;
+			expect(TestTrope).to.have.property('trope');
+			var TestTropeInstance = TestTrope.trope;
+			expect(TestTropeInstance).to.be.an.instanceOf(Trope);
+			expect(TestTropeInstance).to.have.property('proto');
+			expect(TestTropeInstance.proto).to.equal(testPrototype);
+		});
+	});
+});
+
+describe('Trope Instance', function () {
+	var testPrototype = {};
+	var testConstructor = function () {};
+	var trope;
+	var parentTrope;
+	var childTrope;
+	before(function () {
+		var parentTropePrototype = Object.create({
+			superParentMethod1: function () {},
+			superParentMethod2: function () {},
+			superParentMethod3: function () {}
+		});
+		parentTropePrototype.parentMethod1 = function () {};
+		parentTropePrototype.parentMethod2 = function () {};
+		parentTrope = new Trope({
+			prototype: parentTropePrototype
+		});
+		childTrope = new Trope({
+			inherits:parentTrope,
+			prototype: {
+				childMethod1: function () {},
+				childMethod2: function () {}
+			}
+		});
+	});
+	it('should return the constructor of the Trope it\'s inheriting from', function () {
+		var superConstructor = childTrope.getSuperConstructor();
+		expect(superConstructor).to.be.a.function;
+		expect(superConstructor).to.have.property('trope');
+		expect(superConstructor.trope).to.equal(parentTrope);
+	});
+	beforeEach(function () {
+		trope = new Trope({
+			prototype: testPrototype,
+			constructor: testConstructor
+		});
+	});
+	describe('constructor([definition])', function () {
+		it('should return a Trope instance object', function () {
+			var trope = new Trope();
+			expect(trope).to.be.an.instanceOf(Trope);
+		});
+	});
+	describe('#getConstructor([isSuper])', function () {
+		it('should return a Trope constructor function', function () {
+			var TropeConstructor = trope.getConstructor();
+			expect(TropeConstructor).to.be.a.function;
+			expect(TropeConstructor).to.have.property('trope');
+			expect(TropeConstructor.trope).to.equal(trope);
+		});
+	});
+	describe('#createProxyConstructor([isSuper])', function () {
+		it('should return a proxy constructor function', function () {
+			var TropeProxyConstructor = trope.createProxyConstructor();
+			expect(TropeProxyConstructor).to.be.a.function;
+			var obj = new TropeProxyConstructor();
+			expect(obj).to.exist;
+			expect(obj).to.be.an.instanceOf(TropeProxyConstructor);
+		});
+	});
+	describe('#getPrototype()', function () {
+		it('should return the prototype associated with the Trope object', function () {
+			var proto = trope.getPrototype();
+			expect(proto).to.equal(testPrototype);
+		});
+	});
+	describe('#getSuperConstructor()', function () {
+		it('should return the constructor of the Trope it\'s inheriting from', function () {
+			var superConstructor = childTrope.getSuperConstructor();
+			expect(superConstructor).to.be.a.function;
+			expect(superConstructor).to.have.property('trope');
+			expect(superConstructor.trope).to.equal(parentTrope);
+		});
+	});
+	describe('#forEachTropeInChain(callback)', function () {
+		it('should iterate through each Trope in the inheritance chain, starting with the root ancestor', function () {
+			var tropeChainList = [];
+			childTrope.forEachTropeInChain(function (currentTrope) {
+				tropeChainList.push(currentTrope);
+			});
+			expect(tropeChainList).to.have.length(2);
+			expect(tropeChainList[0]).to.equal(parentTrope);
+			expect(tropeChainList[1]).to.equal(childTrope);
+		});
+	});
+	describe('#forEachMethod(callback)', function () {
+		it('should interate though each method function in the prototype chain in this trope\'s definition, starting with the root ancestor', function () {
+			var tropeMethodList = [];
+			parentTrope.forEachMethod(function (currentMethod, currentMethodName) {
+				tropeMethodList.push(currentMethodName);
+			});
+			expect(tropeMethodList).to.have.length(5);
+
+			var first3Methods = tropeMethodList.splice(0,3);
+			var last2Methods = tropeMethodList;
+
+			expect(first3Methods).to.include('superParentMethod1');
+			expect(first3Methods).to.include('superParentMethod2');
+			expect(first3Methods).to.include('superParentMethod3');
+			expect(last2Methods).to.include('parentMethod1');
+			expect(last2Methods).to.include('parentMethod2');
+		});
+	});
+	describe('#createChildTrope([definition])', function () {
+		it('should return a Trope instance object which inherits from this Trope', function () {
+			var definition = {};
+			var childTrope = parentTrope.createChildTrope(definition);
+			expect(childTrope.inherits).to.equal(parentTrope);
+			expect(childTrope.def).to.equal(definition);
+		});
+	});
+	describe('#defineChild([definition])', function () {
+		it('should return a Trope constructor function whose Trope inherits from this Trope', function () {
+			var definition = {};
+			var ChildTrope = parentTrope.defineChild(definition);
+			expect(ChildTrope).to.be.a.function;
+			expect(ChildTrope.trope.inherits).to.equal(parentTrope);
+			expect(ChildTrope.trope.def).to.equal(definition);
+		});
+	});
+	describe('#extend([*])', function () {
+		it('should return a Trope constructor function whose Trope inherits from this Trope', function () {
+			var ChildTrope = parentTrope.extend(testConstructor, testPrototype);
+			expect(ChildTrope.trope.inherits).to.equal(parentTrope);
+			expect(ChildTrope.trope.constr).to.equal(testConstructor);
+			expect(ChildTrope.trope.proto).to.equal(testPrototype);
+		});
+	});
+	describe('#getDefinition()', function () {
+		it('should return a shallow copy of this trope\'s definition object', function () {
+			var definition = parentTrope.getDefinition();
+			expect(definition).to.deep.equal(parentTrope.def);
+		});
+	});
+});
 
 describe('Trope Usage', function () {
 
