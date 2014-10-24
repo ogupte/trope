@@ -310,7 +310,40 @@ var Trope = (function () {
 										};
 										return superConstr;
 									} else {
-										return topOfStack.func.bind(targetCtx);
+										var superFunc = function () {
+											var returnValue;
+											if (topOfStack.trope.inherits) {
+												superStack.push({ func: topOfStack.trope.inherits.finalProto[topOfStack.methodName], trope: topOfStack.trope.inherits, isMethod: true, methodName: topOfStack.methodName });
+											} else {
+												superStack.push({ func: null, trope: null, isMethod: true, methodName: topOfStack.methodName });
+											}
+											returnValue = topOfStack.func.apply(targetCtx, arguments);
+											superStack.pop();
+											return returnValue;
+										};
+										var superFuncName = topOfStack.methodName;
+										superFunc.as = function (_trope) {
+											if (!(_trope instanceof Trope) && typeof _trope === FUNCTION && _trope.trope) {
+												_trope = _trope.trope;
+											}
+											if (_trope.isPrivate) {
+												targetCtx = getPrivateCtx();
+											} else {
+												targetCtx = pubCtx;
+											}
+											return function () {
+												var returnValue;
+												if (_trope.inherits) {
+													superStack.push({ func: _trope.inherits.finalProto[superFuncName], trope: _trope.inherits, isMethod: true, methodName: superFuncName });
+												} else {
+													superStack.push({ func: null, trope: null, isMethod: true, methodName: superFuncName });
+												}
+												returnValue = _trope.finalProto[superFuncName].apply(targetCtx, arguments);
+												superStack.pop();
+												return returnValue;
+											};
+										};
+										return superFunc;
 									}
 								}
 							}
@@ -341,7 +374,7 @@ var Trope = (function () {
 								pubCtx[methodName] = function () {
 									var args = arguments;
 									var returnValue;
-									superStack.push({ func: superMethod, trope: currentTrope, isMethod: true });
+									superStack.push({ func: superMethod, trope: currentTrope, isMethod: true, methodName: methodName });
 									if (currentTrope.isPrivate) {
 										returnValue = method.apply(getPrivateCtx(), args);
 									} else {

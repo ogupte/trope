@@ -48,7 +48,11 @@ describe('Trope Instance', function () {
 	var trope;
 	var parentTrope;
 	var childTrope;
-	before(function () {
+	beforeEach(function () {
+		trope = new Trope({
+			prototype: testPrototype,
+			constructor: testConstructor
+		});
 		var parentTropePrototype = Object.create({
 			superParentMethod1: function () {},
 			superParentMethod2: function () {},
@@ -72,12 +76,6 @@ describe('Trope Instance', function () {
 		expect(superConstructor).to.be.a.function;
 		expect(superConstructor).to.have.property('trope');
 		expect(superConstructor.trope).to.equal(parentTrope);
-	});
-	beforeEach(function () {
-		trope = new Trope({
-			prototype: testPrototype,
-			constructor: testConstructor
-		});
 	});
 	describe('constructor([definition])', function () {
 		it('should return a Trope instance object', function () {
@@ -825,6 +823,80 @@ describe('Trope Usage', function () {
 						var animal = new Animal('Pumbaa');
 						animal.getLongName();
 					});
+				});
+			});
+			describe('this.super.as(Trope)', function () {
+				it('should call the constructor of given Trope and apply it to the current object',function () {
+					var Organism = Trope.define({
+						useSuper: true,
+						constructor: function Organism (name) {
+							this.name = name;
+						},
+						prototype: {
+							getLongName: function () {
+								expect(this.super).to.not.exist;
+								return 'Organism';
+							}
+						}
+					});
+					var Animal = Trope.define({
+						useSuper: true,
+						inherits: Organism,
+						constructor: function Animal (name) {
+							expect(this.super).to.exist;
+							expect(this.super).to.have.property('as');
+							this.super.as(Organism)(name);
+							expect(this.name).to.equal(name);
+							this.kingdom = 'Animalia';
+						},
+						prototype: {
+							getLongName: function () {
+								return this.kingdom;
+							}
+						}
+					});
+					var animal = new Animal('Pumbaa');
+				});
+				it('should call the method of given Trope and apply it to the current object',function () {
+					var Biota = Trope.define({
+						prototype: {
+							getLongName: function () {
+								expect(this.super).to.not.exist;
+								return 'Organic Agents';
+							}
+						}
+					});
+					var Organism = Trope.define({
+						useSuper: true,
+						inherits: Biota,
+						constructor: function Organism (name) {
+							this.name = name;
+						},
+						prototype: {
+							getLongName: function () {
+								// expect(this.super).to.not.exist;
+								expect(this.super()).to.equal('Organic Agents');
+								return 'Organism';
+							}
+						}
+					});
+					var Animal = Trope.define({
+						useSuper: true,
+						inherits: Organism,
+						constructor: function Animal (name) {
+							this.kingdom = 'Animalia';
+						},
+						prototype: {
+							getLongName: function () {
+								expect(this.super).to.exist;
+								var superMethodReturns = this.super.as(Organism)();
+								expect(superMethodReturns).to.equal('Organism');
+								return this.kingdom;
+							}
+						}
+					});
+					var animal = new Animal('Pumbaa');
+					animal.getLongName();
 				});
 			});
 		});
