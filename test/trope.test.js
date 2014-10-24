@@ -786,33 +786,257 @@ describe('Trope Usage', function () {
 	});
 
 	describe('Configuration: privacy', function () {
+		var TropeWithPrivacy = new Trope({
+			privacy: true,
+			constructor: function () {
+				this.secret = 'property of the private context';
+			}
+		});
+		var TropeWithoutPrivacy = new Trope({
+			privacy: false,
+			constructor: function () {
+				this.notSecret = 'property of the public context';
+			}
+		});
+
 		describe('default config value', function () {
-			it('should default to false when not specified in the given definition and it doesn\'t inherit');
-			it('should default to whatever value is in the definition the Trope inherits from');
+			it('should default to false when not specified in the given definition and it doesn\'t inherit', function () {
+				var ATrope = new Trope({});
+				expect(ATrope).to.have.property('isPrivate', false);
+			});
+			it('should default to whatever value is in the definition the Trope inherits from', function () {
+				var ATrope = new Trope({ inherits: TropeWithPrivacy });
+				var BTrope = new Trope({ inherits: TropeWithoutPrivacy });
+				expect(ATrope).to.have.property('isPrivate', true);
+				expect(BTrope).to.have.property('isPrivate', false);
+			});
 		});
 		describe('privacy: true', function () {
 			describe('simple', function () {
-				it('should create a Trope in which the constructor and methods access the private context with `this`');
-				it('should create a Trope in which the constructor and methods access the public context with `this.exports`');
+				it('should create a Trope in which the constructor and methods access the private context with `this` and the public context with `this.exports`', function () {
+					var closedBookThisContext;
+					var closedBookExportsContext;
+					var ClosedBook = Trope.define({
+						privacy: true,
+						constructor: function ClosedBook () {
+							closedBookThisContext = this;
+							closedBookExportsContext = this.exports;
+							this.secret = 'property of the private context';
+							this.exports.notSecret = 'property of the public context';
+							this.readFrom();
+						},
+						prototype: {
+							readFrom: function () {
+								expect(this).to.equal(closedBookThisContext);
+							},
+							getSecret: function () {
+								return this.secret;
+							}
+						}
+					});
+					var closedBookPublicContext = new ClosedBook();
+					expect(closedBookPublicContext).to.not.equal(closedBookThisContext);
+					expect(closedBookPublicContext).to.equal(closedBookExportsContext);
+					expect(closedBookPublicContext).to.have.property('notSecret', 'property of the public context');
+					expect(closedBookPublicContext).to.not.have.property('secret');
+					expect(closedBookPublicContext.getSecret()).to.equal('property of the private context');
+				});
 			});
 			describe('with inheritance', function () {
-				describe('homogeneous (all parents have privacy set to true in their definitions) & mixed (parents have both true and false values for privacy in their defintions)', function () {
-					it('should create a Trope in which all constructors and methods access the private context with `this`');
-					it('should create a Trope in which all constructors and methods access the public context with `this.exports`');
+				describe('Homogeneous (all parents have privacy set to true in their definitions)', function () {
+					var HomogeneousPrivacyTrope = new Trope({
+						inherits: TropeWithPrivacy,
+						privacy: true
+					});
+					it('should create a Trope in which all constructors and methods access the private context with `this` and the public context with `this.exports`', function () {
+						var closedBookThisContext;
+						var closedBookExportsContext;
+						var ClosedBook = Trope.define({
+							privacy: true,
+							inherits: HomogeneousPrivacyTrope,
+							constructor: function ClosedBook () {
+								closedBookThisContext = this;
+								closedBookExportsContext = this.exports;
+								this.secret = 'property of the private context';
+								this.exports.notSecret = 'property of the public context';
+								this.readFrom();
+							},
+							prototype: {
+								readFrom: function () {
+									expect(this).to.equal(closedBookThisContext);
+								},
+								getSecret: function () {
+									return this.secret;
+								}
+							}
+						});
+						var closedBookPublicContext = new ClosedBook();
+						expect(closedBookPublicContext).to.not.equal(closedBookThisContext);
+						expect(closedBookPublicContext).to.equal(closedBookExportsContext);
+						expect(closedBookPublicContext).to.have.property('notSecret', 'property of the public context');
+						expect(closedBookPublicContext).to.not.have.property('secret');
+						expect(closedBookPublicContext.getSecret()).to.equal('property of the private context');
+					});
+				});
+				describe('Mixed (parents have both true and false values for privacy in their defintions)', function () {
+					it('should create a Trope in which those constructors and methods whose definitions have privacy set to false are not able to access the private context and can access the public context with `this` and those constructors and methods whose definitions have privacy set to true are able to access the private context with `this` and the public context with `this.exports`', function () {
+						var bookThisContext;
+						var Book = Trope.define({
+							privacy: false,
+							constructor: function Book () {
+								bookThisContext = this;
+								this.baseBookProperty = true;
+								this.readFromBook();
+							},
+							prototype: {
+								readFromBook: function () {
+									expect(this).to.equal(bookThisContext);
+								}
+							}
+						});
+
+
+						var closedBookThisContext;
+						var closedBookExportsContext;
+						var ClosedBook = Trope.define({
+							privacy: true,
+							inherits: Book,
+							constructor: function ClosedBook () {
+								this.super();
+								closedBookThisContext = this;
+								closedBookExportsContext = this.exports;
+								this.secret = 'property of the private context';
+								this.exports.notSecret = 'property of the public context';
+								this.readFromClosedBook();
+							},
+							prototype: {
+								readFromClosedBook: function () {
+									expect(this).to.equal(closedBookThisContext);
+								},
+								getSecret: function () {
+									return this.secret;
+								}
+							}
+						});
+						var closedBookPublicContext = new ClosedBook();
+
+						expect(closedBookPublicContext).to.not.equal(closedBookThisContext);
+						expect(closedBookPublicContext).to.equal(closedBookExportsContext);
+						expect(closedBookPublicContext).to.equal(bookThisContext);
+						expect(closedBookPublicContext).to.have.property('notSecret', 'property of the public context');
+						expect(closedBookPublicContext).to.not.have.property('secret');
+						expect(closedBookPublicContext.getSecret()).to.equal('property of the private context');
+						expect(closedBookPublicContext).to.have.property('baseBookProperty', true);
+
+					});
 				});
 			});
 		});
 		describe('privacy: false', function () {
 			describe('simple', function () {
-				it('should create a Trope in which the constructor and methods access the public context with `this`');
+				it('should create a Trope in which the constructor and methods access the public context with `this`', function () {
+					var openBookThisContext;
+					var OpenBook = Trope.define({
+						privacy: false,
+						constructor: function OpenBook () {
+							openBookThisContext = this;
+							this.readFrom();
+						},
+						prototype: {
+							readFrom: function () {
+								expect(this).to.equal(openBookThisContext);
+							}
+						}
+					});
+					var openBookPublicContext = new OpenBook();
+					expect(openBookPublicContext).to.equal(openBookThisContext);
+				});
 			});
 			describe('with inheritance', function () {
-				describe('homogeneous', function () {
-					it('should create a Trope in which all constructors and methods access the public context with `this`');
+				describe('Homogeneous (all parents have privacy set to false in their definitions)', function () {
+					it('should create a Trope in which all constructors and methods access the public context with `this`', function () {
+						var bookThisContext;
+						var Book = Trope.define({
+							privacy: false,
+							constructor: function Book () {
+								bookThisContext = this;
+								this.readFromBook();
+							},
+							prototype: {
+								readFromBook: function () {
+									expect(this).to.equal(bookThisContext);
+								}
+							}
+						});
+
+						var openBookThisContext;
+						var OpenBook = Trope.define({
+							privacy: false,
+							inherits: Book,
+							constructor: function OpenBook () {
+								this.super();
+								openBookThisContext = this;
+								this.readFromOpenBook();
+							},
+							prototype: {
+								readFromOpenBook: function () {
+									expect(this).to.equal(openBookThisContext);
+								}
+							}
+						});
+						var openBookPublicContext = new OpenBook();
+						expect(openBookPublicContext).to.equal(openBookThisContext);
+						expect(openBookPublicContext).to.equal(bookThisContext);
+					});
 				});
-				describe('mixed (parents have both true and false values for privacy in their defintions)', function () {
-					it('should create a Trope in which those constructors and methods whose definitions have privacy set to true are able to access the private context with `this` and public context with `this.exports`');
-					it('should create a Trope in which those constructors and methods whose definitions have privacy set to false are not able to access the private context and can access the public context with `this`');
+				describe('Mixed (parents have both true and false values for privacy in their defintions)', function () {
+					it('should create a Trope in which those constructors and methods whose definitions have privacy set to false are not able to access the private context and can access the public context with `this` and those constructors and methods whose definitions have privacy set to true are able to access the private context with `this` and the public context with `this.exports`', function () {
+						var bookThisContext;
+						var bookExportsContext;
+						var Book = Trope.define({
+							privacy: true,
+							constructor: function Book () {
+								bookThisContext = this;
+								bookExportsContext = this.exports;
+								this.secret = 'property of the private context';
+								this.exports.notSecret = 'property of the public context';
+								this.readFromBook();
+							},
+							prototype: {
+								readFromBook: function () {
+									expect(this).to.equal(bookThisContext);
+								},
+								getSecret: function () {
+									return this.secret;
+								}
+							}
+						});
+
+						var openBookThisContext;
+						var OpenBook = Trope.define({
+							privacy: false,
+							inherits: Book,
+							constructor: function OpenBook () {
+								this.super();
+								openBookThisContext = this;
+								this.readFromOpenBook();
+							},
+							prototype: {
+								readFromOpenBook: function () {
+									expect(this).to.equal(openBookThisContext);
+								}
+							}
+						});
+
+						var openBookPublicContext = new OpenBook();
+
+						expect(openBookPublicContext).to.equal(openBookThisContext);
+						expect(openBookPublicContext).to.not.equal(bookThisContext);
+						expect(openBookPublicContext).to.equal(bookExportsContext);
+						expect(openBookPublicContext).to.have.property('notSecret', 'property of the public context');
+						expect(openBookPublicContext).to.not.have.property('secret');
+						expect(openBookPublicContext.getSecret()).to.equal('property of the private context');
+					});
 				});
 			});
 		});
