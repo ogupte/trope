@@ -714,31 +714,31 @@ describe('Trope Usage', function () {
 				}
 			});
 
-			xit('should support multiple inheritance by proxying parents into the current inheritance chain', function (done) {
-				var LoggingEventedDog = Trope.Define(EventEmitter).extend(Logger).extend(Dog).extend({
-					constructor: function LoggingEventedDog(name) {
-						this.super.as(EventEmitter)();
-						this.super.as(Logger)(name);
-						this.super.as(Dog)(name);
-						this.on('log', function (msg) {
-							this.log(msg);
-							//this.log(this.getLongName());// this fails since it calls this.super() and not getting what it expects
-						});
-					}
-				});
-				var loggingEventedDog = new LoggingEventedDog('Pumbaa');
-				loggingEventedDog.on('log', function (msg) {
-					expect(msg).to.equal('w000f!!');
-					done();
-				});
-				expect(loggingEventedDog).to.be.an.instanceOf(EventEmitter);
-				//these don't work because this isn't true multiple inheritance
-				//e.g. it's not an instance of 'Logger', it is an instance of 'Logger that extends EventEmitter'
-				// expect(loggingEventedDog).to.be.an.instanceOf(Logger);
-				// expect(loggingEventedDog).to.be.an.instanceOf(Animal);
-				// expect(loggingEventedDog).to.be.an.instanceOf(Organism);
-				loggingEventedDog.emit('log', 'w000f!!');
-				console.log('%O',loggingEventedDog);
+			it('should support multiple inheritance by proxying parents into the current inheritance chain', function (done) {
+				try {
+					var LoggingEventedDog = Trope.Define(EventEmitter).extend(Logger).extend(Dog).extend({
+						constructor: function LoggingEventedDog(name) {
+							this.super.as(EventEmitter)();
+							this.super.as(Logger)(name);
+							this.super.as(Dog)(name);
+						}
+					});
+					var loggingEventedDog = new LoggingEventedDog('Pumbaa');
+					loggingEventedDog.on('log', function (msg) {
+						expect(msg).to.equal('w000f!!');
+						done();
+					});
+					expect(loggingEventedDog).to.be.an.instanceOf(EventEmitter);
+					//these don't work because this isn't true multiple inheritance
+					//e.g. it's not an instance of 'Logger', it is an instance of 'Logger that extends EventEmitter'
+					// expect(loggingEventedDog).to.be.an.instanceOf(Logger);
+					// expect(loggingEventedDog).to.be.an.instanceOf(Animal);
+					// expect(loggingEventedDog).to.be.an.instanceOf(Organism);
+					expect(loggingEventedDog.getLongName()).to.equal('Animalia Chordata Mammalia Carnivora Canis familiaris');
+					loggingEventedDog.emit('log', 'w000f!!');
+				} catch (err) {
+					done(err);
+				}
 			});
 		});
 	});

@@ -438,8 +438,41 @@ var Trope = (function () {
 		createChildTrope: function (def) {
 			var trope = this;
 			def = def || {};
-			def.inherits = trope;
-			return new Trope(def);
+			if (!def.inherits) {
+				def.inherits = trope;
+				return new Trope(def);
+			} else {
+				var definitionSuperTrope = (function (inherits) {
+					if (inherits) {
+						if (inherits instanceof Trope) {
+							return inherits;
+						} else if (inherits.trope) {
+							return inherits.trope;
+						} else {
+							if (typeof inherits === 'function') {
+								return new Trope({
+									constructor: inherits,
+									prototype: inherits.prototype,
+									useSuper: false
+								});
+							} else {
+								return new Trope({
+									prototype: inherits,
+									useSuper: false
+								});
+							}
+						}
+					} else {
+						return null;
+					}
+				}(def.inherits));
+				var topTrope = trope;
+				definitionSuperTrope.forEachTropeInChain(function (currentTrope) {
+					topTrope = new Trope(currentTrope.getDefinition({ inherits: topTrope }));
+				});
+				def.inherits = topTrope;
+				return new Trope(def);
+			}
 		},
 		defineChild: function (def) {
 			var trope = this;
@@ -452,12 +485,13 @@ var Trope = (function () {
 			var arity = args.length;
 			var supportedArityHandler = arityMap[arity] || arityMap['?'];
 			var def = supportedArityHandler.apply(arityMap, args);
-			// def.inherits = trope;
-			// return Trope.define(def);
 			return trope.defineChild(def);
 		},
-		getDefinition: function () {
+		getDefinition: function (override) {
 			var trope = this;
+			if (override) {
+				return mix(override, mix(trope.def, {}));
+			}
 			return mix(trope.def, {});
 		}
 	};
