@@ -734,6 +734,11 @@ describe('Trope Usage', function () {
 					// expect(loggingEventedDog).to.be.an.instanceOf(Logger);
 					// expect(loggingEventedDog).to.be.an.instanceOf(Animal);
 					// expect(loggingEventedDog).to.be.an.instanceOf(Organism);
+					//instead use this:
+					expect(Trope.is(loggingEventedDog).instanceOf(Logger)).to.be.true;
+					expect(Trope.is(loggingEventedDog).instanceOf(Animal)).to.be.true;
+					expect(Trope.is(loggingEventedDog).instanceOf(Organism)).to.be.true;
+					
 					expect(loggingEventedDog.getLongName()).to.equal('Animalia Chordata Mammalia Carnivora Canis familiaris');
 					loggingEventedDog.emit('log', 'w000f!!');
 				} catch (err) {

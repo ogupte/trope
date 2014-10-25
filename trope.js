@@ -194,6 +194,7 @@ var Trope = (function () {
 		trope.instanceName = def.instance || trope.typeName + '\u1d62';
 		if (def.useInstanceName === undefined || def.useInstanceName) {
 			trope.instanceContructor = eval('(function ' + trope.instanceName + ' () {})');
+			trope.instanceContructor.trope = trope;
 		}
 
 		trope.useSuper = (function () {
@@ -493,6 +494,17 @@ var Trope = (function () {
 				return mix(override, mix(trope.def, {}));
 			}
 			return mix(trope.def, {});
+		},
+		isInstance: function (obj) {
+			var trope = this;
+			var shareConstructor = false;
+			forEachPrototypeOf(obj, function (proto) {
+				// console.log(proto);
+				if (proto.constructor === trope.constr) {
+					shareConstructor = true;
+				}
+			});
+			return shareConstructor;
 		}
 	};
 
@@ -610,6 +622,24 @@ var Trope = (function () {
 		var supportedArityHandler = arityMap[arity] || arityMap['?'];
 		var def = supportedArityHandler.apply(arityMap, args);
 		return Trope.define(def);
+	};
+
+	Trope.is = function (obj) {
+		return {
+			instanceOf: function (constr) {
+				if (constr.trope) {
+					return constr.trope.isInstance(obj);
+				} else {
+					var shareConstructor = false;
+					forEachPrototypeOf(obj, function (proto) {
+						if (proto.constructor === constr) {
+							shareConstructor = true;
+						}
+					});
+					return shareConstructor;
+				}
+			}
+		};
 	};
 
 	applyAliases(Trope, DEFINE_ALIAS, Trope.Define);
