@@ -740,6 +740,8 @@ describe('Trope Usage', function () {
 					done(err);
 				}
 			});
+
+			it('should provide an instanceof equivalent for Tropes using multiple inheritance');
 		});
 	});
 
