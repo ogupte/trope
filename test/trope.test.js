@@ -40,6 +40,67 @@ describe('Trope Static', function () {
 			expect(TestTropeInstance.proto).to.equal(testPrototype);
 		});
 	});
+	describe('Trope.instanceOf', function () {
+		var Organism = Trope.define({
+			constructor: function Organism (name) {
+				this.name = name;
+			},
+			prototype: {
+				getLongName: function () {
+					return 'Organism';
+				}
+			}
+		});
+		var Animal = Trope.define({
+			inherits: Organism,
+			constructor: function Animal (name) {
+				this.super(name);
+				this.kingdom = 'Animalia';
+			},
+			prototype: {
+				getLongName: function () {
+					return this.kingdom;
+				}
+			}
+		});
+		function NativeConstructor () {}
+
+		it('should throw an error if it wasn\'t passed 2 arguments', function () {
+			var animal = new Animal('Pumbaa');
+			expect(function () {
+				Trope.instanceOf();
+			}).to.throw('Trope.instanceOf only supports 2 arguments');
+			expect(function () {
+				Trope.instanceOf(animal);
+			}).to.throw('Trope.instanceOf only supports 2 arguments');
+			expect(function () {
+				Trope.instanceOf(animal, Animal, Organism);
+			}).to.throw('Trope.instanceOf only supports 2 arguments');
+		});
+		it('should throw an error if it wasn\'t passed an function and an object', function () {
+			var animal = new Animal('Pumbaa');
+			expect(function () {
+				Trope.instanceOf(animal, 'Animal');
+			}).to.throw('Trope.instanceOf must have an OBJECT and FUNCTION as arguments');
+			expect(function () {
+				Trope.instanceOf(animal, {});
+			}).to.throw('Trope.instanceOf must have an OBJECT and FUNCTION as arguments');
+			expect(function () {
+				Trope.instanceOf(Animal, Animal);
+			}).to.throw('Trope.instanceOf must have an OBJECT and FUNCTION as arguments');
+		});
+		it('support trope constructors and native constructors', function () {
+			var animal = new Animal('Pumbaa');
+			var resultAnimal = Trope.instanceOf(animal, Animal);
+			var testNativeObj = new NativeConstructor();
+			var resultNative = Trope.instanceOf(testNativeObj, NativeConstructor);
+			expect(resultAnimal).to.be.a.boolean;
+			expect(resultAnimal).to.be.true;
+			expect(resultNative).to.be.a.boolean;
+			expect(resultNative).to.be.true;
+			expect(Trope.instanceOf(testNativeObj, Animal)).to.be.false;
+		});
+	});
 });
 
 describe('Trope Instance', function () {
@@ -728,17 +789,6 @@ describe('Trope Usage', function () {
 						expect(msg).to.equal('w000f!!');
 						done();
 					});
-					expect(loggingEventedDog).to.be.an.instanceOf(EventEmitter);
-					//these don't work because this isn't true multiple inheritance
-					//e.g. it's not an instance of 'Logger', it is an instance of 'Logger that extends EventEmitter'
-					// expect(loggingEventedDog).to.be.an.instanceOf(Logger);
-					// expect(loggingEventedDog).to.be.an.instanceOf(Animal);
-					// expect(loggingEventedDog).to.be.an.instanceOf(Organism);
-					//instead use this:
-					expect(Trope.is(loggingEventedDog).instanceOf(Logger)).to.be.true;
-					expect(Trope.is(loggingEventedDog).instanceOf(Animal)).to.be.true;
-					expect(Trope.is(loggingEventedDog).instanceOf(Organism)).to.be.true;
-					
 					expect(loggingEventedDog.getLongName()).to.equal('Animalia Chordata Mammalia Carnivora Canis familiaris');
 					loggingEventedDog.emit('log', 'w000f!!');
 				} catch (err) {
@@ -746,7 +796,26 @@ describe('Trope Usage', function () {
 				}
 			});
 
-			it('should provide an instanceof equivalent for Tropes using multiple inheritance');
+			it('should have Trope.instanceOf work for Tropes using multiple inheritance', function () {
+				var LoggingEventedDog = Trope.Define(EventEmitter).extend(Logger).extend(Dog).extend({
+					constructor: function LoggingEventedDog(name) {
+						this.super.as(EventEmitter)();
+						this.super.as(Logger)(name);
+						this.super.as(Dog)(name);
+					}
+				});
+				var loggingEventedDog = new LoggingEventedDog('Pumbaa');
+				expect(loggingEventedDog).to.be.an.instanceOf(EventEmitter); // works because it is at the root of the chain
+				//these don't work because this isn't true multiple inheritance
+				//e.g. it's not an instance of 'Logger', it is an instance of 'Logger that extends EventEmitter'
+				// expect(loggingEventedDog).to.be.an.instanceOf(Logger);
+				// expect(loggingEventedDog).to.be.an.instanceOf(Animal);
+				// expect(loggingEventedDog).to.be.an.instanceOf(Organism);
+				//instead use this:
+				expect(Trope.instanceOf(loggingEventedDog, Logger)).to.be.true;
+				expect(Trope.instanceOf(loggingEventedDog, Animal)).to.be.true;
+				expect(Trope.instanceOf(loggingEventedDog, Organism)).to.be.true;
+			});
 		});
 	});
 

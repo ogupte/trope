@@ -121,6 +121,16 @@ var Trope = (function () {
 	]));
 
 	function Trope (def) {
+		if (typeof def === FUNCTION) {
+			if (def.trope && def.trope instanceof Trope) {
+				return def.trope;
+			} else {
+				def = {
+					constructor: def
+				};
+			}
+		}
+
 		def = def || {
 			prototype: Object.create(null),
 			useSuper: false
@@ -499,7 +509,6 @@ var Trope = (function () {
 			var trope = this;
 			var shareConstructor = false;
 			forEachPrototypeOf(obj, function (proto) {
-				// console.log(proto);
 				if (proto.constructor === trope.constr) {
 					shareConstructor = true;
 				}
@@ -624,22 +633,25 @@ var Trope = (function () {
 		return Trope.define(def);
 	};
 
-	Trope.is = function (obj) {
-		return {
-			instanceOf: function (constr) {
-				if (constr.trope) {
-					return constr.trope.isInstance(obj);
-				} else {
-					var shareConstructor = false;
-					forEachPrototypeOf(obj, function (proto) {
-						if (proto.constructor === constr) {
-							shareConstructor = true;
-						}
-					});
-					return shareConstructor;
-				}
-			}
-		};
+	Trope.instanceOf = function (arg0, arg1) {
+		if (arguments.length !== 2) {
+			throw new Error('Trope.instanceOf only supports 2 arguments');
+		}
+		var constr, obj;
+		if (typeof arg0 === FUNCTION && typeof arg1 === OBJECT) {
+			constr = arg0;
+			obj = arg1;
+		} else if (typeof arg0 === OBJECT && typeof arg1 === FUNCTION) {
+			obj = arg0;
+			constr = arg1;
+		} else {
+			throw new Error('Trope.instanceOf must have an OBJECT and FUNCTION as arguments');
+		}
+		if (constr.trope) {
+			return constr.trope.isInstance(obj);
+		} else {
+			return obj instanceof constr;
+		}
 	};
 
 	applyAliases(Trope, DEFINE_ALIAS, Trope.Define);
