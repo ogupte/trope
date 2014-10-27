@@ -479,7 +479,7 @@ describe('Trope Usage', function () {
 				expect(person.age).to.equal(99);
 			});
 		});
-		xdescribe('using Trope objects', function () {
+		/*xdescribe('using Trope objects', function () {
 			// a Trope instance
 			var personTrope = new Trope({
 				constructor: Person
@@ -490,10 +490,10 @@ describe('Trope Usage', function () {
 					trope: personTrope
 				});
 			});
-		});
+		});*/
 	});
 
-	//Organism > Animal > Vertebrate > Mammal > Carnivore > Candidae > Canine > Wolf > Dog > Dachshund
+	//Organism > Animal > Vertebrate > Mammal > Carnivore > Canine > Dog > Dachshund
 	describe('Inheritance', function () {
 		var Organism;
 		var Animal;
@@ -1045,7 +1045,23 @@ describe('Trope Usage', function () {
 					});
 				});
 				describe('mixed (parents have both true and false values for useSuper in their defintions)', function () {
+					var console_warn = console.warn;
+					function stubConsoleWarn(stubFunc, replace) {
+						console.warn = function () {
+							stubFunc.apply(console, arguments);
+							if (!replace) {
+								return console_warn.apply(console, arguments);
+							}
+						};
+					}
+					function resetConsoleWarn() {
+						console.warn = console_warn;
+					}
+
 					it('should make super available to all constructors in the inheritance chain and overwritten methods except the root', function () {
+						stubConsoleWarn(function (message) {
+							expect(message).to.equal('useSuper {Vertebrate} must be same as parent {Animal} (defaults to true)!');
+						}, true);
 						var Organism = Trope.define({
 							useSuper: false,
 							constructor: function Organism (name) {
@@ -1092,6 +1108,10 @@ describe('Trope Usage', function () {
 						});
 						var vertebrate = new Vertebrate('Pumbaa');
 						vertebrate.getLongName();
+					});
+
+					after(function () {
+						resetConsoleWarn();
 					});
 				});
 			});
