@@ -89,6 +89,11 @@ function applyAliases(object, aliases, target) {
 
 */
 var Trope = (function () {
+	function exports () {
+		return exports.Define.apply(null, arguments);
+	}
+	var NOOP = function () {};
+	var NULLFUNC = function Null () {};
 	var DEFINE_ALIAS = (function (aliases) {
 		var originalLength = aliases.length;
 		var i;
@@ -158,9 +163,9 @@ var Trope = (function () {
 			} else if (trope.proto.hasOwnProperty && trope.proto.hasOwnProperty('constructor')) {
 				return trope.proto.constructor;
 			} else if (trope.proto instanceof Object) {
-				return function () {};
+				return NOOP;
 			} else {
-				return function Null () {};
+				return NULLFUNC;
 			}
 		}());
 
@@ -306,8 +311,19 @@ var Trope = (function () {
 										};
 
 										superConstr.as = function (_trope) {
-											if (!(_trope instanceof Trope) && typeof _trope === FUNCTION && _trope.trope) {
-												_trope = _trope.trope;
+											if (!(_trope instanceof Trope)) {
+												if (typeof _trope === FUNCTION) {
+													if (_trope.trope) {
+														_trope = _trope.trope;
+													} else {
+														// _trope = getAsTrope(_trope);
+														_trope = new Trope({
+															constructor: _trope,
+															prototype: _trope.prototype,
+															useSuper: false
+														});
+													}
+												}
 											}
 											var _superConstr = _trope.createProxyConstructor(true);
 											return function () {
@@ -516,8 +532,9 @@ var Trope = (function () {
 			return shareConstructor;
 		}
 	};
+	exports.Trope = Trope;
 
-	Trope.define = function (def) {
+	exports.define = function (def) {
 		var trope = new Trope(def);
 		return trope.getConstructor();
 	};
@@ -625,15 +642,15 @@ var Trope = (function () {
 		}
 	};
 
-	Trope.Define = function () {
+	exports.Define = function () {
 		var args = arguments;
 		var arity = args.length;
 		var supportedArityHandler = arityMap[arity] || arityMap['?'];
 		var def = supportedArityHandler.apply(arityMap, args);
-		return Trope.define(def);
+		return exports.define(def);
 	};
 
-	Trope.instanceOf = function (arg0, arg1) {
+	exports.instanceOf = function (arg0, arg1) {
 		if (arguments.length !== 2) {
 			throw new Error('Trope.instanceOf only supports 2 arguments');
 		}
@@ -654,9 +671,9 @@ var Trope = (function () {
 		}
 	};
 
-	applyAliases(Trope, DEFINE_ALIAS, Trope.Define);
+	applyAliases(exports, DEFINE_ALIAS, exports.Define);
 
-	return Trope;
+	return exports;
 }());
 
 module.exports = Trope;

@@ -21,7 +21,7 @@ describe('Trope Static', function () {
 			expect(TestTrope).to.be.a.function;
 			expect(TestTrope).to.have.property('trope');
 			var TestTropeInstance = TestTrope.trope;
-			expect(TestTropeInstance).to.be.an.instanceOf(Trope);
+			expect(TestTropeInstance).to.be.an.instanceOf(Trope.Trope);
 			expect(TestTropeInstance).to.have.property('def');
 			expect(TestTropeInstance.def).to.equal(definition);
 		});
@@ -35,7 +35,7 @@ describe('Trope Static', function () {
 			expect(TestTrope).to.be.a.function;
 			expect(TestTrope).to.have.property('trope');
 			var TestTropeInstance = TestTrope.trope;
-			expect(TestTropeInstance).to.be.an.instanceOf(Trope);
+			expect(TestTropeInstance).to.be.an.instanceOf(Trope.Trope);
 			expect(TestTropeInstance).to.have.property('proto');
 			expect(TestTropeInstance.proto).to.equal(testPrototype);
 		});
@@ -110,7 +110,7 @@ describe('Trope Instance', function () {
 	var parentTrope;
 	var childTrope;
 	beforeEach(function () {
-		trope = new Trope({
+		trope = new Trope.Trope({
 			prototype: testPrototype,
 			constructor: testConstructor
 		});
@@ -121,10 +121,10 @@ describe('Trope Instance', function () {
 		});
 		parentTropePrototype.parentMethod1 = function () {};
 		parentTropePrototype.parentMethod2 = function () {};
-		parentTrope = new Trope({
+		parentTrope = new Trope.Trope({
 			prototype: parentTropePrototype
 		});
-		childTrope = new Trope({
+		childTrope = new Trope.Trope({
 			inherits:parentTrope,
 			prototype: {
 				childMethod1: function () {},
@@ -140,8 +140,8 @@ describe('Trope Instance', function () {
 	});
 	describe('constructor([definition])', function () {
 		it('should return a Trope instance object', function () {
-			var trope = new Trope();
-			expect(trope).to.be.an.instanceOf(Trope);
+			var trope = new Trope.Trope();
+			expect(trope).to.be.an.instanceOf(Trope.Trope);
 		});
 	});
 	describe('#getConstructor([isSuper])', function () {
@@ -238,15 +238,14 @@ describe('Trope Instance', function () {
 });
 
 describe('Trope Usage', function () {
-
 	describe('Creation', function () {
 		describe('Trope constructor', function () {
 			it('should create a Trope instance', function () {
-				var nullTrope = new Trope();
-				expect(nullTrope).to.be.an.instanceOf(Trope);
+				var nullTrope = new Trope.Trope();
+				expect(nullTrope).to.be.an.instanceOf(Trope.Trope);
 			});
 			it('should return a constructor function with trope.getConstructor()', function () {
-				var nullTrope = new Trope();
+				var nullTrope = new Trope.Trope();
 				var NullConstructor = nullTrope.getConstructor();
 				expect(NullConstructor).to.be.a.function;
 				expect(NullConstructor).to.have.property('prototype');
@@ -377,11 +376,11 @@ describe('Trope Usage', function () {
 		});
 		describe('chained from another Trope (trope.createChildTrope)', function () {
 			it('should return a Trope constructor which inherits from the chained Trope object', function () {
-				var nullTrope = new Trope();
+				var nullTrope = new Trope.Trope();
 				var childOfNullTrope = nullTrope.createChildTrope({
 					type: 'ChildOfNull'
 				});
-				expect(childOfNullTrope).to.be.an.instanceOf(Trope);
+				expect(childOfNullTrope).to.be.an.instanceOf(Trope.Trope);
 				expect(childOfNullTrope.inherits).to.equal(nullTrope);
 				expect(Object.getPrototypeOf(childOfNullTrope.finalProto)).to.equal(nullTrope.finalProto);
 				expect(Object.getPrototypeOf(childOfNullTrope.finalProto).constructor).to.equal(nullTrope.constr);
@@ -481,7 +480,7 @@ describe('Trope Usage', function () {
 		});
 		/*xdescribe('using Trope objects', function () {
 			// a Trope instance
-			var personTrope = new Trope({
+			var personTrope = new Trope.Trope({
 				constructor: Person
 			});
 
@@ -822,13 +821,13 @@ describe('Trope Usage', function () {
 	describe('Configuration: useSuper', function () {
 		describe('default config value', function () {
 			it('should default to false when no definition is passed in', function () {
-				var nullTrope = new Trope();
-				expect(nullTrope).to.be.an.instanceOf(Trope);
+				var nullTrope = new Trope.Trope();
+				expect(nullTrope).to.be.an.instanceOf(Trope.Trope);
 				expect(nullTrope).to.have.property('useSuper', false);
 			});
 			it('should default to true when not specified in the given definition', function () {
-				var nullTrope = new Trope({});
-				expect(nullTrope).to.be.an.instanceOf(Trope);
+				var nullTrope = new Trope.Trope({});
+				expect(nullTrope).to.be.an.instanceOf(Trope.Trope);
 				expect(nullTrope).to.have.property('useSuper', true);
 			});
 		});
@@ -1119,13 +1118,13 @@ describe('Trope Usage', function () {
 	});
 
 	describe('Configuration: privacy', function () {
-		var TropeWithPrivacy = new Trope({
+		var TropeWithPrivacy = new Trope.Trope({
 			privacy: true,
 			constructor: function () {
 				this.secret = 'property of the private context';
 			}
 		});
-		var TropeWithoutPrivacy = new Trope({
+		var TropeWithoutPrivacy = new Trope.Trope({
 			privacy: false,
 			constructor: function () {
 				this.notSecret = 'property of the public context';
@@ -1134,12 +1133,12 @@ describe('Trope Usage', function () {
 
 		describe('default config value', function () {
 			it('should default to false when not specified in the given definition and it doesn\'t inherit', function () {
-				var ATrope = new Trope({});
+				var ATrope = new Trope.Trope({});
 				expect(ATrope).to.have.property('isPrivate', false);
 			});
 			it('should default to whatever value is in the definition the Trope inherits from', function () {
-				var ATrope = new Trope({ inherits: TropeWithPrivacy });
-				var BTrope = new Trope({ inherits: TropeWithoutPrivacy });
+				var ATrope = new Trope.Trope({ inherits: TropeWithPrivacy });
+				var BTrope = new Trope.Trope({ inherits: TropeWithoutPrivacy });
 				expect(ATrope).to.have.property('isPrivate', true);
 				expect(BTrope).to.have.property('isPrivate', false);
 			});
@@ -1177,7 +1176,7 @@ describe('Trope Usage', function () {
 			});
 			describe('with inheritance', function () {
 				describe('Homogeneous (all parents have privacy set to true in their definitions)', function () {
-					var HomogeneousPrivacyTrope = new Trope({
+					var HomogeneousPrivacyTrope = new Trope.Trope({
 						inherits: TropeWithPrivacy,
 						privacy: true
 					});
@@ -1380,392 +1379,207 @@ describe('Trope Usage', function () {
 		describe('complex', function () {});
 		describe('weird', function () {});
 		describe('insane', function () {});
-	});
-});
+		describe('README', function () {
+			it('should work', function () {
+				//#### Inheritance Chain
 
-xdescribe('trope', function () {
-
-	var Person = (function () {
-		function Person (name) {
-			this.setName(name);
-			this.age = null;
-		}
-		Person.prototype.setName = function (name) {
-			this.name = name;
-		};
-		Person.prototype.setAge = function (age) {
-			this.age = age;
-		};
-		return Person;
-	}());
-
-	var Employee;
-	var Engineer;
-
-	xit ('should return a constructor', function () {
-		Employee = Trope.define({
-			// useSuper: true,
-			privacy: true,
-			constructor: function Employee (name) {
-				this.name = name;
-				this.age = null;
-				this.salary = null;
-			},
-			prototype: {
-				setName: function (name) {
-					this.name = name;
-				},
-				setAge: function (age) {
-					this.age = age;
-				},
-				setSalary: function (salary) {
-					this.salary = salary;
-				},
-				printCard: function () {
-					var self = this;
-					console.log('Employee-----');
-					console.log(JSON.stringify({
-						name: self.name,
-						age: self.age,
-						salary: self.salary
-					}));
-					console.log('-------------');
-				}
-			}
-		});
-		console.log(Employee);
-		var employee = new Employee('Oliver Gupte');
-		employee.setAge(26);
-		employee.setSalary(54321);
-		employee.printCard();
-		// expect(employee).to.not.have.property('name');
-		// expect(employee).to.not.have.property('age');
-		// expect(employee).to.not.have.property('salary');
-		// expect(employee).to.have.property('foo');
-		// expect(Employee).to.be.a.function;
-		console.log('Employee Object: %O',employee);
-	});
-
-	xit ('should wrap a native constructor', function () {
-		var _Person = Trope.define({constructor: Person});
-		console.log(_Person);
-		var person = new _Person('Oviler');
-		person.setAge(22);
-		console.log(person);
-	});
-
-	xit ('should extend a native constructor and use super', function () {
-		Employee = Trope.define({
-			inherits: Person,
-			// useSuper: false,
-			privacy: true,
-			constructor: function Employee (name) {
-				this.super(name);
-				this.salary = null;
-			},
-			prototype: {
-				setSalary: function (salary) {
-					this.salary = salary;
-				},
-				printCard: function () {
-					var self = this;
-					console.log('Employee-----');
-					console.log(JSON.stringify({
-						name: self.name,
-						age: self.age,
-						salary: self.salary
-					}));
-					console.log('-------------');
-				}
-			}
-		});
-
-		var employee = new Employee('Oliver Gupte');
-		employee.setAge(26);
-		employee.setSalary(54321);
-		employee.printCard();
-		// expect(employee).to.not.have.property('name');
-		// expect(employee).to.not.have.property('age');
-		// expect(employee).to.not.have.property('salary');
-		// expect(employee).to.have.property('foo');
-		console.log('Employee Object: %O',employee);
-	});
-
-	xit ('should extend a trope which extends a constructor and uses more super', function () {
-		Employee = Trope.define({
-			inherits: Person,
-			// useSuper: false,
-			privacy: true,
-			constructor: function Employee (name) {
-				this.super(name);
-				// this.super(Employee, name);
-				this.salary = null;
-				this.exports.privateCtx = this;
-			},
-			prototype: {
-				setSalary: function (salary) {
-					this.salary = salary;
-				},
-				printCard: function () {
-					var self = this;
-					console.log('Employee-----');
-					console.log(JSON.stringify({
-						name: self.name,
-						age: self.age,
-						salary: self.salary
-					}));
-					console.log('-------------');
-				}
-			}
-		});
-
-		Engineer = Trope.define({
-			inherits: Employee,
-			// useSuper: true,
-			// useInstanceName: false,
-			// privacy: true,
-			constructor: function Engineer (name, email) {
-				this.super(name);
-				// this.super(Engineer, name);
-				this.email = email;
-				this.setSalary(123456);
-			},
-			prototype: {
-				code: function () {
-					this.isCoding = true;
-					console.log('['+this.name+' is coding...]');
-				},
-				printCard: function () {
-					var self = this;
-					console.log('Engineeer=======');
-					console.log('  email: ' + self.email);
-					this.super();
-				}
-			}
-		});
-
-		var engineer = new Engineer('Oliver Gupte', 'ogupte@appnexus.com');
-		engineer.setAge(26);
-		engineer.code();
-		engineer.printCard();
-		console.log('Engineer Object: %O',engineer);
-		expect(engineer).to.be.an.instanceOf(Engineer);
-		expect(engineer).to.be.an.instanceOf(Employee);
-		expect(engineer).to.be.an.instanceOf(Person);
-		expect(engineer).to.be.an.instanceOf(Object);
-
-	});
-
-	xit ('should not break', function () {
-		// Person = Trope.define({
-		// 	constructor: Person,
-		// 	privacy: true,
-		// 	useSuper: false
-		// });
-		Employee = Trope.define({
-			inherits: Person,
-			// useSuper: false,
-			privacy: true,
-			constructor: function Employee (name) {
-				this.super(name);
-				// this.name = name;
-				this.salary = null;
-				// this.exports.privateCtx = this;
-			},
-			prototype: {
-				setSalary: function (salary) {
-					this.salary = salary;
-				},
-				printCard: function () {
-					var self = this; //refers to the public context, which is a problem for accessing private members
-					console.log('Employee-----');
-					console.log(JSON.stringify({
-						name: self.name,
-						age: self.age,
-						salary: self.salary
-					}));
-					console.log('-------------');
-				}
-			}
-		});
-
-		Engineer = Trope.define({
-			inherits: Employee,
-			// useSuper: false,
-			// useInstanceName: false,
-			privacy: true,
-			constructor: function Engineer (name, email) {
-				this.super(name);
-				// this.name = name;
-				this.email = email;
-				this.setSalary(123456);
-			},
-			prototype: {
-				code: function () {
-					this.isCoding = true;
-					console.log('['+this.name+' is coding...]');
-				},
-				printCard: function () {
-					var self = this;
-					console.log('Engineeer=======');
-					console.log('  email: ' + self.email);
-					this.super();
-					// console.log('Employee-----');
-					// console.log(JSON.stringify({
-					// 	name: self.name,
-					// 	age: self.age,
-					// 	salary: self.salary
-					// }));
-					// console.log('-------------');
-				}
-			}
-		});
-
-		var engineer = new Engineer('Oliver Gupte', 'ogupte@appnexus.com');
-		// var engineer = Engineer.create('Oliver G', 'oagupte@gmail.com');
-		engineer.setAge(26);
-		engineer.code();
-		engineer.printCard();
-		console.log('Engineer Object: %O',engineer);
-		expect(engineer).to.be.an.instanceOf(Engineer);
-		expect(engineer).to.be.an.instanceOf(Employee);
-		expect(engineer).to.be.an.instanceOf(Person);
-		expect(engineer).to.be.an.instanceOf(Object);
-
-		//Object.getPrototypeOf(engineer);
-		engineer.hackTest = function () {
-			console.log(this.email);
-		};
-		engineer.hackTest();
-
-	});
-
-	it('should do cool things', function () {
-		// var Blank = Trope.Chain(function Logger() {
-		// 	this.buffer = [];
-		// }, {
-		// 	log: function (msg) {
-		// 		this.buffer.push(msg);
-		// 	}
-		// });
-
-		// var Blank = Trope.Proto(function foo (){});
-
-		// var Blank = Trope.turn(function Logger() {
-		// 	this.buffer = [];
-		// }, {
-		// 	log: function (msg) {
-		// 		this.buffer.push(msg);
-		// 	}
-		// }).turn({privacy: true}, function XLogger() {
-		// 	this.thisIsPrivate = true;
-		// }, {
-		// 	moreShit: function () {}
-		// }).turn({
-		// 	constructor: function TEST() {},
-		// 	test: function () {
-		// 		console.log('test');
-		// 	}
-		// });
-
-		// var Blank = Trope.proto().chain('LOGGER', function () {
-		// 	this.foo = 'bar';
-		// }, {
-		// 	log: function (msg) {
-		// 		console.log(msg);
-		// 	}
-		// });
-		//
-		// // var Blank = Trope.define();
-		// var blank = Blank.create();
-		// console.log('%O',blank);
-
-		var EventEmitter = Trope.draft({
-			privacy: true
-		}, function EventEmitter () {
-			this.eventMap = {};
-		}, {
-			on: function (name, handler) {
-				if (this.eventMap[name] === undefined) {
-					this.eventMap[name] = [];
-				}
-				this.eventMap[name].push(handler);
-			},
-			emit: function (name) {
-				var i;
-				var args;
-				if (this.eventMap[name]) {
-					args = [];
-					for (i=1; i<arguments.length; i++) {
-						args.push(arguments[i]);
+				// Prototypes
+				var Animal = Trope({
+					getName: function () {
+						return this.name || 'NoName';
+					},
+					getLongName: function () {
+						return 'Animalia';
 					}
-					for (i=0; i<this.eventMap[name].length; i++) {
-						this.eventMap[name][i].apply(this.exports, args);
+				});
+
+				var pumbaa = Animal.create(); // or `new Animal()`
+				pumbaa.name = 'Pumbaa';
+				pumbaa.getLongName(); // 'Animalia'
+				expect(pumbaa.getLongName()).to.equal('Animalia');
+
+				// Chaining prototypes
+				var Mammal = Animal.extend({
+					// constructor: function () {},
+					getLongName: function () {
+						return this.super() + ' Mammalia';
 					}
+				});
+
+				pumbaa = Mammal.create(); // or `new Mammal()`
+				pumbaa.name = 'Pumbaa';
+				pumbaa.getLongName(); // 'Animalia Mammalia'
+				expect(pumbaa.getLongName()).to.equal('Animalia Mammalia');
+
+				// Constructor functions
+
+				var Carnivore = Mammal.extend({
+					constructor: function (name) {
+						this.name = name;
+					},
+					getLongName: function () {
+						return this.super() + ' Carnivora';
+					}
+				});
+
+				pumbaa = Carnivore.create('Pumbaa'); // or `new Carnivore('Pumbaa')`
+				pumbaa.name === 'Pumbaa'; // true
+				pumbaa.getLongName(); // 'Animalia Mammalia Carnivora'
+				expect(pumbaa.getLongName()).to.equal('Animalia Mammalia Carnivora');
+
+				// Super functions
+
+				var Canine = Carnivore.extend({
+					constructor: function (name) {
+						this.super(name.toUpperCase());
+					},
+					getLongName: function () {
+						return this.super() + ' Canis';
+					}
+				});
+
+				pumbaa = Canine.create('Pumbaa'); // or `new Canine('Pumbaa')`
+				pumbaa.name === 'PUMBAA'; // true
+				expect(pumbaa.name).to.equal('PUMBAA');
+				pumbaa.getLongName(); // 'Animalia Mammalia Carnivora Canis'
+				expect(pumbaa.getLongName()).to.equal('Animalia Mammalia Carnivora Canis');
+
+				// Private members
+
+				var Dog = Canine.extend({ privacy: true }, {
+					constructor: function (name) {
+						this.super(name);
+						this.secret = 'shhhh...'; // this references the object's private state
+					},
+					getLongName: function () {
+						return this.super() + ' familiaris';
+					},
+					shareSecret: function () {
+						return this.secret;
+					}
+				});
+
+				pumbaa = Dog.create('Pumbaa'); // or `new Dog('Pumbaa')`
+				pumbaa.name === 'PUMBAA'; // true
+				expect(pumbaa.name).to.equal('PUMBAA');
+				pumbaa.getLongName(); // 'Animalia Mammalia Carnivora Canis familiaris'
+				expect(pumbaa.getLongName()).to.equal('Animalia Mammalia Carnivora Canis familiaris');
+				pumbaa.secret; // undefined
+				expect(pumbaa.secret).to.be.undefined;
+				pumbaa.shareSecret(); // 'shhhh...'
+				expect(pumbaa.shareSecret()).to.be.equal('shhhh...');
+
+				// Protected members for inheriting Tropes
+
+				var Weiner = Dog.extend({ privacy: true }, {
+					constructor: function (name) {
+						this.super(name);
+						this.secret += 'w00f!';
+						this.exports.name = this.exports.name.toLowerCase(); // access public reference with exports property
+					},
+					getLongName: function () {
+						return this.super() + ' (Dachshund)';
+					}
+				});
+
+				pumbaa = Weiner.create('Pumbaa'); // or `new Weiner('Pumbaa')`
+				pumbaa.name === 'pumbaa'; // true
+				expect(pumbaa.name).to.equal('pumbaa');
+				pumbaa.getLongName(); // 'Animalia Mammalia Carnivora Canis familiaris (Dachshund)'
+				expect(pumbaa.getLongName()).to.equal('Animalia Mammalia Carnivora Canis familiaris (Dachshund)');
+				pumbaa.secret; // undefined
+				expect(pumbaa.secret).to.be.undefined;
+				pumbaa.shareSecret(); // 'shhhh...w00f!'
+				expect(pumbaa.shareSecret()).to.be.equal('shhhh...w00f!');
+
+				//#### Multiple Inheritance Chain
+
+				// vanilla JS EventEmitter implementation
+				function EventEmitter () {
+					this.eventMap = {};
 				}
-			}
+				EventEmitter.prototype.on = function (name, handler) {
+					if (this.eventMap[name] === undefined) {
+						this.eventMap[name] = [];
+					}
+					this.eventMap[name].push(handler);
+				};
+				EventEmitter.prototype.emit = function (name) {
+					var i;
+					var args;
+					if (this.eventMap[name]) {
+						args = [];
+						for (i=1; i<arguments.length; i++) {
+							args.push(arguments[i]);
+						}
+						for (i=0; i<this.eventMap[name].length; i++) {
+							this.eventMap[name][i].apply(this, args);
+						}
+					}
+				};
+
+				// Trope Logger implementation
+				var Logger = Trope({ privacy: true },
+					function Logger (options) {
+						this.prefix = options.prefix;
+					}, {
+						log: function (msg) {
+							console.log(this.prefix + ': ' + msg);
+						}
+					});
+
+				// Combine all the above into 1 Trope
+				var LoggingEventedDog = Trope(EventEmitter)
+					.extend(Logger)
+					.extend(Dog)
+					.extend({
+						constructor: function (name) {
+							this.super.as(Dog)(name);
+							this.super.as(Logger)({ prefix: name });
+							this.super.as(EventEmitter)();
+							this.on('bark', function (noise) {
+								this.log(noise);
+							});
+						},
+						bark: function () {
+							this.emit('bark', 'Bark!');
+						},
+						woof: function () {
+							this.emit('bark', 'Woof!');
+						},
+						ruff: function () {
+							this.emit('bark', 'Ruff!');
+						}
+					});
+
+				pumbaa = LoggingEventedDog.create('Pumbaa');
+				pumbaa.on('bark', function (noise) {
+					if (noise === 'Woof!') {
+						this.log(this.shareSecret());
+					}
+				});
+
+				pumbaa.getLongName(); // 'Animalia Mammalia Carnivora Canis familiaris'
+				expect(pumbaa.getLongName()).to.equal('Animalia Mammalia Carnivora Canis familiaris');
+				pumbaa.bark(); // 'PUMBAA: Bark!'
+				pumbaa.woof(); // 'PUMBAA: Woof!'
+							// 'PUMBAA: shhhh...!'
+				pumbaa.secret; // undefined
+				expect(pumbaa.secret).to.be.undefined;
+				pumbaa.ruff(); // 'PUMBAA: Ruff!'
+
+				Trope.instanceOf(pumbaa, Logger); // true
+				expect(Trope.instanceOf(pumbaa, Logger)).to.be.true;
+				Trope.instanceOf(pumbaa, EventEmitter); // true
+				expect(Trope.instanceOf(pumbaa, EventEmitter)).to.be.true;
+				Trope.instanceOf(pumbaa, Dog); // true
+				expect(Trope.instanceOf(pumbaa, Dog)).to.be.true;
+				// debugger;
+				Trope.instanceOf(pumbaa, Mammal); // true
+				expect(Trope.instanceOf(pumbaa, Mammal)).to.be.true;
+				Trope.instanceOf(pumbaa, Animal); // true
+				expect(Trope.instanceOf(pumbaa, Animal)).to.be.true;
+			});
 		});
-
-		var Logger = Trope.draft({
-			privacy: true
-		}, function Logger (prefix) {
-			this.prefix = prefix;
-		}, {
-			log: function (msg) {
-				console.log(this.prefix + ': ' + msg);
-			}
-		});
-
-		var Person = (function () {
-			function Person (name, age) {
-				if (name) {
-					this.setName(name);
-				}
-				if (age !== undefined) {
-					this.setAge(age);
-				}
-			}
-			Person.prototype.setName = function (name) {
-				this.name = name;
-			};
-			Person.prototype.setAge = function (age) {
-				this.age = age;
-			};
-			return Person;
-		}());
-
-		var PersonLogger = Logger.proto({privacy: false}, Person).proto(function (name, age) {
-			this.super.as(Logger)(name);
-			this.super(name, age);
-		});
-		var personLogger = new PersonLogger('oliver', 99);
-		personLogger.log('hello');
-		console.log(personLogger);
-
-		var Employee = Trope.proto(EventEmitter).proto(Logger).proto({privacy: false}, Person).proto({
-			constructor: function Employeee (name, age, salary) {
-				this.super.as(EventEmitter)();
-				this.super.as(Logger)(name);
-				this.super(name, age);
-				this.salary = salary;
-			},
-			getBusinessCard: function () {
-				console.log('|--Employee---------------');
-				console.log('|    name: ' + this.name);
-				console.log('|    age: ' + this.age);
-				console.log('|    salary: ' + this.salary);
-				console.log('|-------------------------');
-			}
-		});
-
-		var oliverEmployee = Employee.create('Oliver Gupte', 26, 123456);
-		oliverEmployee.on('promote', function (arg0) {
-			this.log('WOOHOO I GOT PROMOTED!! ' + arg0);
-		});
-		oliverEmployee.getBusinessCard();
-		oliverEmployee.emit('promote', 654321);
-		console.log('%O', oliverEmployee);
-
 	});
-
 });

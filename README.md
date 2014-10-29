@@ -50,7 +50,7 @@ var Mammal = Animal.extend({
     }
 });
 
-pumbaa = Mammael.create(); // or `new Mammal()`
+pumbaa = Mammal.create(); // or `new Mammal()`
 pumbaa.name = 'Pumbaa';
 pumbaa.getLongName(); // 'Animalia Mammalia'
 
@@ -110,7 +110,7 @@ pumbaa.shareSecret(); // 'shhhh...'
 var Weiner = Dog.extend({ privacy: true }, {
     constructor: function (name) {
         this.super(name);
-        this.secret += 'w00f!'
+        this.secret += 'w00f!';
         this.exports.name = this.exports.name.toLowerCase(); // access public reference with exports property
     },
     getLongName: function () {
@@ -146,10 +146,10 @@ EventEmitter.prototype.emit = function (name) {
             args.push(arguments[i]);
         }
         for (i=0; i<this.eventMap[name].length; i++) {
-            this.eventMap[name][i].apply(this.exports, args);
+            this.eventMap[name][i].apply(this, args);
         }
     }
-}
+};
 
 // Trope Logger implementation
 var Logger = Trope({ privacy: true },
@@ -185,7 +185,7 @@ var LoggingEventedDog = Trope(EventEmitter)
         }
     });
 
-var pumbaa = LoggingEventedDog.create('Pumbaa');
+pumbaa = LoggingEventedDog.create('Pumbaa');
 pumbaa.on('bark', function (noise) {
     if (noise === 'Woof!') {
         this.log(this.shareSecret());
