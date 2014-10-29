@@ -30,7 +30,6 @@ function mix (srcObj, destObj) {
 	}
 	return destObj;
 }
-exports.mix = mix;
 
 function forEachPrototypeOf (obj, callback) {
 	var proto = Object.getPrototypeOf(obj);
@@ -89,9 +88,12 @@ function applyAliases(object, aliases, target) {
 
 */
 var Trope = (function () {
-	function exports () {
-		return exports.Define.apply(null, arguments);
-	}
+	var exports = Define;
+	var OBJECT = 'object';
+	var FUNCTION = 'function';
+	var STRING = 'string';
+	var PROTOTYPE = 'prototype';
+	var CONSTRUCTOR = 'constructor';
 	var NOOP = function () {};
 	var NULLFUNC = function Null () {};
 	var DEFINE_ALIAS = (function (aliases) {
@@ -150,7 +152,7 @@ var Trope = (function () {
 				return def.prototype;
 			} else if (def.prototype === null) {
 				return Object.create(null);
-			} else if (Object.hasOwnProperty.call(def.constructor, 'prototype')) {
+			} else if (Object.hasOwnProperty.call(def.constructor, PROTOTYPE)) {
 				return def.constructor.prototype;
 			} else {
 				return Object.create(null);
@@ -158,9 +160,9 @@ var Trope = (function () {
 		}());
 
 		trope.constr = (function () {
-			if (def.hasOwnProperty('constructor')) {
+			if (def.hasOwnProperty(CONSTRUCTOR)) {
 				return def.constructor;
-			} else if (trope.proto.hasOwnProperty && trope.proto.hasOwnProperty('constructor')) {
+			} else if (trope.proto.hasOwnProperty && trope.proto.hasOwnProperty(CONSTRUCTOR)) {
 				return trope.proto.constructor;
 			} else if (trope.proto instanceof Object) {
 				return NOOP;
@@ -177,7 +179,7 @@ var Trope = (function () {
 				} else if (def.inherits.trope) {
 					return def.inherits.trope;
 				} else {
-					if (typeof def.inherits === 'function') {
+					if (typeof def.inherits === FUNCTION) {
 						return new Trope({
 							constructor: def.inherits,
 							prototype: def.inherits.prototype,
@@ -240,7 +242,7 @@ var Trope = (function () {
 		// TODO make this look better
 		trope.finalProto = trope.getPrototype();
 		if (trope.constr !== Object) {
-			setNonEnumerableProperty(trope.finalProto, 'constructor', trope.constr); // display type is correct (cosmetic) -> final prototype points to the original constructor
+			setNonEnumerableProperty(trope.finalProto, CONSTRUCTOR, trope.constr); // display type is correct (cosmetic) -> final prototype points to the original constructor
 		}
 	}
 
@@ -422,7 +424,7 @@ var Trope = (function () {
 					args = newArgs;
 				}
 				if (!isSuper && trope.instanceContructor) {
-					setNonEnumerableProperty(pubCtx, 'constructor', trope.instanceContructor);
+					setNonEnumerableProperty(pubCtx, CONSTRUCTOR, trope.instanceContructor);
 				}
 				superStack.push({ func: trope.superConstr, trope: trope.inherits, isConstructor: true });
 				trope.constr.apply(targetCtx, args);
@@ -439,12 +441,8 @@ var Trope = (function () {
 		},
 		getSuperConstructor: function () {
 			var trope = this;
-			var superConstr;
 			if (trope.useSuper && trope.inherits) {
-				superConstr = trope.inherits.getConstructor(true);
-				// superConstr.isSuperConstructor = true;
-				return superConstr;
-				// return trope.inherits.getConstructor(true);
+				return trope.inherits.getConstructor(true);
 			} else {
 				return null;
 			}
@@ -476,7 +474,7 @@ var Trope = (function () {
 						} else if (inherits.trope) {
 							return inherits.trope;
 						} else {
-							if (typeof inherits === 'function') {
+							if (typeof inherits === FUNCTION) {
 								return new Trope({
 									constructor: inherits,
 									prototype: inherits.prototype,
@@ -534,14 +532,12 @@ var Trope = (function () {
 	};
 	exports.Trope = Trope;
 
-	exports.define = function (def) {
+	function define (def) {
 		var trope = new Trope(def);
 		return trope.getConstructor();
-	};
+	}
+	exports.define = define;
 
-	var OBJECT = 'object';
-	var FUNCTION = 'function';
-	var STRING = 'string';
 	// possibly implement this as a state machine to get rid of useless combinations
 	var arityMap = {
 		'0': function () {},
@@ -642,15 +638,16 @@ var Trope = (function () {
 		}
 	};
 
-	exports.Define = function () {
+	function Define () {
 		var args = arguments;
 		var arity = args.length;
 		var supportedArityHandler = arityMap[arity] || arityMap['?'];
 		var def = supportedArityHandler.apply(arityMap, args);
-		return exports.define(def);
-	};
+		return define(def);
+	}
+	exports.Define = Define;
 
-	exports.instanceOf = function (arg0, arg1) {
+	function instanceOf (arg0, arg1) {
 		if (arguments.length !== 2) {
 			throw new Error('Trope.instanceOf only supports 2 arguments');
 		}
@@ -669,9 +666,10 @@ var Trope = (function () {
 		} else {
 			return obj instanceof constr;
 		}
-	};
+	}
+	exports.instanceOf = instanceOf;
 
-	applyAliases(exports, DEFINE_ALIAS, exports.Define);
+	applyAliases(exports, DEFINE_ALIAS, Define);
 
 	return exports;
 }());

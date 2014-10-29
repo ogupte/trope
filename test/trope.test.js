@@ -1379,7 +1379,7 @@ describe('Trope Usage', function () {
 		describe('complex', function () {});
 		describe('weird', function () {});
 		describe('insane', function () {});
-		describe('README', function () {
+		describe('README example', function () {
 			it('should work', function () {
 				//#### Inheritance Chain
 
