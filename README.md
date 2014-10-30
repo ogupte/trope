@@ -52,7 +52,7 @@ pumbaa.getLongName(); // 'Animalia'
 ```
 
 #### Constructor Functions
-set a constructor property on the prototype
+You can set a constructor property on the prototype
 ```javascript
 var Animal = Trope({
     constructor: function (name) {
@@ -66,7 +66,7 @@ var Animal = Trope({
     }
 });
 ```
-or pass in a separate function
+or pass it in as a separate function
 ```javascript
 var Animal = Trope(function (name) {
         this.name = name;
@@ -79,11 +79,11 @@ var Animal = Trope(function (name) {
     }
 });
 ```
-arguments are passed into the `create` function or the `new` constructor like a normal JS constructor.
+Arguments are passed into the `create` function or the `new` constructor.
 ```javascript
 var pumbaa = Animal.create('Pumbaa'); // or `new Animal('Pumbaa')`
 ```
-you can even leave off the prototype
+You can even leave off the prototype if you wanted.
 ```javascript
 var Animal = Trope(function (name) {
     this.name = name;
@@ -91,7 +91,7 @@ var Animal = Trope(function (name) {
 ```
 
 #### Native JS Compatability
-easily wrap native JS definitions in a Trope
+Wrap native JS definitions to use them like a Trope.
 ```javascript
 function NativeJSAnimal (name) {
     this.name = name;
@@ -106,7 +106,7 @@ pumbaa.getName(); // 'Pumbaa'
 ```
 
 #### Inheritance
-calling `chain` on a Trope to chain a new Trope off of it
+Call `chain` on a Trope to extend the prototype chain with a new Trope.
 ```javascript
 var Mammal = Animal.chain({
     getLongName: function () {
@@ -114,7 +114,7 @@ var Mammal = Animal.chain({
     }
 });
 ```
-use `this.super` to call a parent method
+Use `this.super` to call parent methods.
 ```javascript
 var Mammal = Animal.chain({
     getLongName: function () {
@@ -127,7 +127,7 @@ mammal instanceof Mammal; // true
 mammal instanceof Animal; // true
 
 ```
-you can also use `this.super` to call the parent constructor
+You can also use `this.super` to call the parent constructor.
 ```javascript
 var Mammal = Animal.chain({
     constructor: function (name) {
@@ -141,7 +141,7 @@ Mammal.create('PuMbAa').getName(); // 'pumbaa'
 ```
 
 #### Private Members
-use the `privacy` option to define a Trope in privacy mode
+Use the `privacy` option to define a Trope in privacy mode
 ```javascript
 var PrivateAnimal = Trope({ privacy: true }, {
     constructor: function () {
@@ -173,7 +173,7 @@ pumbaa.secret; // undefined
 pumbaa.shareSecret(); // 'shhhh...'
 pumbaa.name; // 'Pumbaa'
 ```
-When you inherit a Trope that has `privacy` enabled, the new Trope will also default to `privacy` mode unless it's explicity set to `false`. If so, the new Trope will not have access to the parent Trope's private members.
+When you inherit a Trope that has `privacy` enabled, the new Trope will also default to `privacy` mode unless explicity set to `false`. If so, the new Trope will not have access to private members.
 ```javascript
 var PublicMammal = PrivateAnimal.chain({ privacy: false }, {
     constructor: function (name) {
@@ -232,9 +232,9 @@ Trope.instanceOf(pumbaa, Mammal);
 Trope.instanceOf(pumbaa, Animal);
 Trope.instanceOf(pumbaa, Object);
 ```
-Notice that `this.super.as` is used to be able to call any of the parent constructors. This also works for methods.
+Notice that `this.super.as` is used to call any of the parent constructors. This also works for methods.
 
-Normally, the native JS `instanceof` operator works for single inheritance but in this case, `Trope.instanceOf` is needed. This is because the object isn't really an `instanceof` `Logger`, it's actualy an `instanceof` `[Logger which inherits EventEmitter]`, a dynamically generated Trope since JavaScript only truly supports single inheritance.
+Normally, the native JS `instanceof` operator works but in this case, `Trope.instanceOf` is needed. This is because the object isn't really an `instanceof` `Logger`, it's actually an `instanceof` `[Logger which inherits EventEmitter]`, a dynamically generated Trope that gets around JavaScript's single inheritance restriction.
 
 ## Test
 ### Unit
