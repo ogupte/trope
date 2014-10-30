@@ -1,6 +1,7 @@
 # trope.js
 ## Description
-Trope is awesome.
+Trope is an awesome way to define prototypes in JavaScript. [see examples](#examples)
+
 ## Usage
 ### Node
 install with `npm`
@@ -25,10 +26,16 @@ then use npm to install or link it
 
     cd trope; sudo npm link
 
-### Example
-#### Inheritance Chain
+### Examples
+* [Simple Prototypes](#simple-prototypes)
+* [Constructor Functions](#constructor-functions)
+* [Native JS Compatability](#native-js-compatability)
+* [Inheritance](#inheritance)
+* [Private Members](#private-members)
+* [Multiple Inheritance](#multiple-inheritance)
+
+#### Simple Prototypes
 ```javascript
-// Prototypes
 var Animal = Trope({
     getName: function () {
         return this.name || 'NoName';
@@ -40,139 +47,160 @@ var Animal = Trope({
 
 var pumbaa = Animal.create(); // or `new Animal()`
 pumbaa.name = 'Pumbaa';
+pumbaa.getName(); // 'Pumbaa'
 pumbaa.getLongName(); // 'Animalia'
+```
 
-// Chaining prototypes
+#### Constructor Functions
+set a constructor property on the prototype
+```javascript
+var Animal = Trope({
+    constructor: function (name) {
+        this.name = name;
+    },
+    getName: function () {
+        return this.name || 'NoName';
+    },
+    getLongName: function () {
+        return 'Animalia';
+    }
+});
+```
+or pass in a separate function
+```javascript
+var Animal = Trope(function (name) {
+        this.name = name;
+    }, {
+    getName: function () {
+        return this.name || 'NoName';
+    },
+    getLongName: function () {
+        return 'Animalia';
+    }
+});
+```
+arguments are passed into the `create` function or the `new` constructor like a normal JS constructor.
+```javascript
+var pumbaa = Animal.create('Pumbaa'); // or `new Animal('Pumbaa')`
+```
+you can even leave off the prototype
+```javascript
+var Animal = Trope(function (name) {
+    this.name = name;
+});
+```
 
-var Mammal = Animal.extend({
+#### Native JS Compatability
+easily wrap native JS definitions in a Trope
+```javascript
+function NativeJSAnimal (name) {
+    this.name = name;
+}
+NativeJSAnimal.prototype.getName = function () {
+    return this.name || 'NoName';
+};
+
+var Animal = Trope(NativeJSAnimal);
+var pumbaa = Animal.create('Pumbaa');
+pumbaa.getName(); // 'Pumbaa'
+```
+
+#### Inheritance
+calling `chain` on a Trope to chain a new Trope off of it
+```javascript
+var Mammal = Animal.chain({
+    getLongName: function () {
+        return 'Mammalia';
+    }
+});
+```
+use `this.super` to call a parent method
+```javascript
+var Mammal = Animal.chain({
     getLongName: function () {
         return this.super() + ' Mammalia';
     }
 });
+var mammal = Mammal.create();
+mammal.getLongName(); // 'Animalia Mammalia'
+mammal instanceof Mammal; // true
+mammal instanceof Animal; // true
 
-pumbaa = Mammal.create(); // or `new Mammal()`
-pumbaa.name = 'Pumbaa';
-pumbaa.getLongName(); // 'Animalia Mammalia'
-
-// Constructor functions
-
-var Carnivore = Mammal.extend({
+```
+you can also use `this.super` to call the parent constructor
+```javascript
+var Mammal = Animal.chain({
     constructor: function (name) {
-        this.name = name;
+        this.super(name.toLowerCase());
     },
     getLongName: function () {
-        return this.super() + ' Carnivora';
+        return this.super() + ' Mammalia';
     }
 });
+Mammal.create('PuMbAa').getName(); // 'pumbaa'
+```
 
-pumbaa = Carnivore.create('Pumbaa'); // or `new Carnivore('Pumbaa')`
-pumbaa.name === 'Pumbaa'; // true
-pumbaa.getLongName(); // 'Animalia Mammalia Carnivora'
-
-// Super functions
-
-var Canine = Carnivore.extend({
-    constructor: function (name) {
-        this.super(name.toUpperCase());
-    },
-    getLongName: function () {
-        return this.super() + ' Canis';
-    }
-});
-
-pumbaa = Canine.create('Pumbaa'); // or `new Canine('Pumbaa')`
-pumbaa.name === 'PUMBAA'; // true
-pumbaa.getLongName(); // 'Animalia Mammalia Carnivora Canis'
-
-// Private members
-
-var Dog = Canine.extend({ privacy: true }, {
-    constructor: function (name) {
-        this.super(name);
+#### Private Members
+use the `privacy` option to define a Trope in privacy mode
+```javascript
+var PrivateAnimal = Trope({ privacy: true }, {
+    constructor: function () {
         this.secret = 'shhhh...'; // this references the object's private state
-    },
-    getLongName: function () {
-        return this.super() + ' familiaris';
     },
     shareSecret: function () {
         return this.secret;
     }
 });
 
-pumbaa = Dog.create('Pumbaa'); // or `new Dog('Pumbaa')`
-pumbaa.name === 'PUMBAA'; // true
-pumbaa.getLongName(); // 'Animalia Mammalia Carnivora Canis familiaris'
+var pumbaa = PrivateAnimal.create();
 pumbaa.secret; // undefined
 pumbaa.shareSecret(); // 'shhhh...'
-
-// Protected members for inheriting Tropes
-
-var Weiner = Dog.extend({ privacy: true }, {
+```
+In `privacy` mode, `this` will always refer to the object's private state, but you can still access the public reference with `this.exports`.
+```javascript
+var PrivateAnimal = Trope({ privacy: true }, {
     constructor: function (name) {
-        this.super(name);
-        this.secret += 'w00f!';
-        this.exports.name = this.exports.name.toLowerCase(); // access public reference with exports property
+        this.secret = 'shhhh...'; // this references the object's private state
+        this.exports.name = name;
     },
-    getLongName: function () {
-        return this.super() + ' (Dachshund)';
+    shareSecret: function () {
+        return this.secret;
     }
 });
 
-pumbaa = Weiner.create('Pumbaa'); // or `new Weiner('Pumbaa')`
-pumbaa.name === 'pumbaa'; // true
-pumbaa.getLongName(); // 'Animalia Mammalia Carnivora Canis familiaris (Dachshund)'
+var pumbaa = PrivateAnimal.create('Pumbaa');
 pumbaa.secret; // undefined
-pumbaa.shareSecret(); // 'shhhh...w00f!'
+pumbaa.shareSecret(); // 'shhhh...'
+pumbaa.name; // 'Pumbaa'
 ```
-#### Multiple Inheritance Chain
+When you inherit a Trope that has `privacy` enabled, the new Trope will also default to `privacy` mode unless it's explicity set to `false`. If so, the new Trope will not have access to the parent Trope's private members.
 ```javascript
-
-// vanilla JS EventEmitter implementation
-function EventEmitter () {
-    this.eventMap = {};
-}
-EventEmitter.prototype.on = function (name, handler) {
-    if (this.eventMap[name] === undefined) {
-        this.eventMap[name] = [];
+var PublicMammal = PrivateAnimal.chain({ privacy: false }, {
+    constructor: function (name) {
+        this.super(name);
+        this.secret; // undefined
     }
-    this.eventMap[name].push(handler);
-};
-EventEmitter.prototype.emit = function (name) {
-    var i;
-    var args;
-    if (this.eventMap[name]) {
-        args = [];
-        for (i=1; i<arguments.length; i++) {
-            args.push(arguments[i]);
-        }
-        for (i=0; i<this.eventMap[name].length; i++) {
-            this.eventMap[name][i].apply(this, args);
-        }
-    }
-};
+});
 
-// Trope Logger implementation
-var Logger = Trope({ privacy: true },
-    function Logger (options) {
-        this.prefix = options.prefix;
-    }, {
-        log: function (msg) {
-            console.log(this.prefix + ': ' + msg);
-        }
-    });
+var pumbaa = PublicMammal.create('Pumbaa');
+pumbaa.name; // 'Pumbaa'
+pumbaa.secret; // undefined
+pumbaa.shareSecret(); // 'shhhh...'
+```
 
-// Combine all the above into 1 Trope
+#### Multiple Inheritance
+Native JS prototypes do not support multiple inheritance, but Trope has a way to get around this.
+
+In this example, I have already defined `EventEmitter` (a native JS implementation), `Logger` (a Trope Logger implementation), and `Dog` (which has it's own inheritance chain `Dog` → `Canine` → `Carnivore` → `Mammal` → `Animal`).
+```javascript
 var LoggingEventedDog = Trope(EventEmitter)
-    .extend(Logger)
-    .extend(Dog)
-    .extend({
+    .chain(Logger)
+    .chain(Dog)
+    .chain({
         constructor: function (name) {
             this.super.as(Dog)(name);
             this.super.as(Logger)({ prefix: name });
             this.super.as(EventEmitter)();
-            this.on('bark', function (noise) {
-                this.log(noise);
-            });
         },
         bark: function () {
             this.emit('bark', 'Bark!');
@@ -185,26 +213,28 @@ var LoggingEventedDog = Trope(EventEmitter)
         }
     });
 
-pumbaa = LoggingEventedDog.create('Pumbaa');
+var pumbaa = LoggingEventedDog.create('Pumbaa');
+pumbaa.log(pumbaa.getLongName()) // 'Pumbaa: Animalia Mammalia Carnivora Canis familiaris'
 pumbaa.on('bark', function (noise) {
-    if (noise === 'Woof!') {
-        this.log(this.shareSecret());
-    }
+    pumbaa.log(noise);
 });
+pumbaa.bark(); // 'Pumbaa: Bark!'
+pumbaa.woof(); // 'Pumbaa: Woof!'
+pumbaa.ruff(); // 'Pumbaa: Ruff!'
 
-pumbaa.getLongName(); // 'Animalia Mammalia Carnivora Canis familiaris'
-pumbaa.bark(); // 'PUMBAA: Bark!'
-pumbaa.woof(); // 'PUMBAA: Woof!'
-               // 'PUMBAA: shhhh...!'
-pumbaa.secret; // undefined
-pumbaa.ruff(); // 'PUMBAA: Ruff!'
-
-Trope.instanceOf(pumbaa, Logger); // true
-Trope.instanceOf(pumbaa, EventEmitter); // true
-Trope.instanceOf(pumbaa, Dog); // true
-Trope.instanceOf(pumbaa, Mammal); // true
-Trope.instanceOf(pumbaa, Animal); // true
+// all true:
+Trope.instanceOf(pumbaa, Logger);
+Trope.instanceOf(pumbaa, EventEmitter);
+Trope.instanceOf(pumbaa, Dog);
+Trope.instanceOf(pumbaa, Canine);
+Trope.instanceOf(pumbaa, Carnivore);
+Trope.instanceOf(pumbaa, Mammal);
+Trope.instanceOf(pumbaa, Animal);
+Trope.instanceOf(pumbaa, Object);
 ```
+Notice that `this.super.as` is used to be able to call any of the parent constructors. This also works for methods.
+
+Normally, the native JS `instanceof` operator works for single inheritance but in this case, `Trope.instanceOf` is needed. This is because the object isn't really an `instanceof` `Logger`, it's actualy an `instanceof` `[Logger which inherits EventEmitter]`, a dynamically generated Trope since JavaScript only truly supports single inheritance.
 
 ## Test
 ### Unit
