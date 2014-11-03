@@ -91,7 +91,7 @@ var Animal = Trope(function (name) {
 ```
 
 #### Native JS Compatability
-Wrap native JS definitions to use them like a Trope.
+Create a Trope from a native JS definition.
 ```javascript
 function NativeJSAnimal (name) {
     this.name = name;
