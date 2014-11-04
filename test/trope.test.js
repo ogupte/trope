@@ -1581,5 +1581,51 @@ describe('Trope Usage', function () {
 				expect(Trope.instanceOf(pumbaa, Animal)).to.be.true;
 			});
 		});
+		describe('self initializing tropes', function () {
+
+			var EventEmitter = Trope({
+				privacy: true,
+				initialize: true,
+			}, function EventEmitter () {
+				this.eventMap = {};
+			}, {
+				on: function (name, handler) {
+					if (this.eventMap[name] === undefined) {
+						this.eventMap[name] = [];
+					}
+					this.eventMap[name].push(handler);
+				},
+				emit: function (name) {
+					var i;
+					var args;
+					if (this.eventMap[name]) {
+						args = [];
+						for (i=1; i<arguments.length; i++) {
+							args.push(arguments[i]);
+						}
+						for (i=0; i<this.eventMap[name].length; i++) {
+							this.eventMap[name][i].apply(this.exports, args);
+						}
+					}
+				}
+			});
+
+			it('should work', function () {
+				var EventedType = EventEmitter.chain({
+					go: function (val) {
+						this.emit('go', val);
+					}
+				});
+				var eventedInstance = EventedType.create();
+				var testStack = [];
+				eventedInstance.on('go', function (val) {
+					testStack.push(val);
+				});
+				eventedInstance.go(3);
+				eventedInstance.go(2);
+				eventedInstance.go(1);
+				expect(testStack).to.deep.equal([3,2,1]);
+			});
+		});
 	});
 });

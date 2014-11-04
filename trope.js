@@ -239,6 +239,13 @@ var Trope = (function () {
 
 		trope.superConstr = trope.getSuperConstructor();
 
+		trope.initializedTropes = [];
+		trope.forEachTropeInChain(function (currentTrope) {
+			if (currentTrope.def.initialize) {
+				trope.initializedTropes.push(currentTrope);
+			}
+		});
+
 		// TODO make this look better
 		trope.finalProto = trope.getPrototype();
 		if (trope.constr !== Object) {
@@ -427,6 +434,11 @@ var Trope = (function () {
 					setNonEnumerableProperty(pubCtx, CONSTRUCTOR, trope.instanceContructor);
 				}
 				superStack.push({ func: trope.superConstr, trope: trope.inherits, isConstructor: true });
+				if (!isSuper) {
+					trope.initializedTropes.forEach(function (initTrope) {
+						pubCtx.super.as(initTrope)();
+					});
+				}
 				trope.constr.apply(targetCtx, args);
 				superStack.pop();
 			};
