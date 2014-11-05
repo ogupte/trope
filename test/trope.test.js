@@ -1585,7 +1585,7 @@ describe('Trope Usage', function () {
 
 			var EventEmitter = Trope({
 				privacy: true,
-				initialize: true,
+				autoinit: true,
 			}, function EventEmitter () {
 				this.eventMap = {};
 			}, {
@@ -1626,6 +1626,9 @@ describe('Trope Usage', function () {
 				eventedInstance.go(1);
 				expect(testStack).to.deep.equal([3,2,1]);
 			});
+
+			it('should take the arguments passed into the main constructor by default');
+			it('should take no arguments if set to a special new function just for initializing instead of just setting it to true');
 		});
 	});
 });

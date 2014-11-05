@@ -239,10 +239,10 @@ var Trope = (function () {
 
 		trope.superConstr = trope.getSuperConstructor();
 
-		trope.initializedTropes = [];
+		trope.autoInitializedTropes = [];
 		trope.forEachTropeInChain(function (currentTrope) {
-			if (currentTrope.def.initialize) {
-				trope.initializedTropes.push(currentTrope);
+			if (currentTrope.def.autoinit) {
+				trope.autoInitializedTropes.push(currentTrope);
 			}
 		});
 
@@ -435,8 +435,8 @@ var Trope = (function () {
 				}
 				superStack.push({ func: trope.superConstr, trope: trope.inherits, isConstructor: true });
 				if (!isSuper) {
-					trope.initializedTropes.forEach(function (initTrope) {
-						pubCtx.super.as(initTrope)();
+					trope.autoInitializedTropes.forEach(function (initTrope) {
+						pubCtx.super.as(initTrope).apply(null, args);
 					});
 				}
 				trope.constr.apply(targetCtx, args);
