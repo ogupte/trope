@@ -241,7 +241,7 @@ var Trope = (function () {
 
 		trope.autoInitializedTropes = [];
 		trope.forEachTropeInChain(function (currentTrope) {
-			if (currentTrope.def.autoinit) {
+			if (currentTrope.def.autoinit && currentTrope !== trope) {
 				trope.autoInitializedTropes.push(currentTrope);
 			}
 		});

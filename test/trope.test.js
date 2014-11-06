@@ -1627,8 +1627,67 @@ describe('Trope Usage', function () {
 				expect(testStack).to.deep.equal([3,2,1]);
 			});
 
-			it('should take the arguments passed into the main constructor by default');
-			it('should take no arguments if set to a special new function just for initializing instead of just setting it to true');
+			it('should take the arguments passed into the main constructor by default', function () {
+				var EventedType = Trope({
+					autoinit: true,
+					constructor: function (eventMap) {
+						this.eventMap = eventMap;
+					}
+				}, EventEmitter).chain({
+					go: function (val) {
+						this.emit('go', val);
+					}
+				});
+
+				var eventedInstance = EventedType.create({});
+				var testStack = [];
+				eventedInstance.on('go', function (val) {
+					testStack.push(val);
+				});
+				eventedInstance.go(6);
+				eventedInstance.go(5);
+				eventedInstance.go(4);
+				expect(testStack).to.deep.equal([6,5,4]);
+			});
+
+			xit('should take no arguments if set to a special new function just for initializing instead of just setting it to true', function () {
+				var EventedType = Trope({
+					autoinit: function () {
+						this.eventMap = {};
+					},
+					constructor: function (eventMap) {
+						this.eventMap = eventMap;
+					}
+				}, EventEmitter).chain({
+					go: function (val) {
+						this.emit('go', val);
+					}
+				});
+
+				var eventedInstance = EventedType.create();
+				var testStack = [];
+				eventedInstance.on('go', function (val) {
+					testStack.push(val);
+				});
+				eventedInstance.go(6);
+				eventedInstance.go(5);
+				eventedInstance.go(4);
+				expect(testStack).to.deep.equal([6,5,4]);
+			});
+
+			xit('should be able to create an instance by calling the constructor function without the `new` operator', function () {
+				var testStack = [];
+				var ee = EventEmitter();
+				ee.on('go', function (val) {
+					testStack.push(val);
+				});
+				ee.emit('go', 9);
+				ee.emit('go', 99);
+				ee.emit('go', 999);
+				expect(ee).to.be.an.object;
+				expect(ee).to.be.an.instanceOf(EventEmitter);
+				expect(testStack).to.deep.equal([9,99,999]);
+			});
 		});
 	});
 });
