@@ -1651,12 +1651,17 @@ describe('Trope Usage', function () {
 			});
 		});
 		describe('self initializing tropes', function () {
-
+			var BaseType = Trope(function BaseType () {
+				this.baseState = 'setup';
+			});
 			var EventEmitter = Trope({
 				privacy: true,
 				autoinit: true,
+				inherits: BaseType,
+				type: 'EventEmitter',
 			}, function EventEmitter () {
 				this.eventMap = {};
+				this.super();
 			}, {
 				on: function (name, handler) {
 					if (this.eventMap[name] === undefined) {
@@ -1694,6 +1699,10 @@ describe('Trope Usage', function () {
 				eventedInstance.go(2);
 				eventedInstance.go(1);
 				expect(testStack).to.deep.equal([3,2,1]);
+				expect(eventedInstance).to.be.an.instanceOf(EventedType);
+				expect(eventedInstance).to.be.an.instanceOf(EventEmitter);
+				expect(eventedInstance).to.be.an.instanceOf(BaseType);
+				expect(eventedInstance).to.have.property('baseState', 'setup');
 			});
 
 			it('should take the arguments passed into the main constructor by default', function () {
@@ -1701,14 +1710,15 @@ describe('Trope Usage', function () {
 					autoinit: true,
 					constructor: function (eventMap) {
 						this.eventMap = eventMap;
+						this.super();
 					}
 				}, EventEmitter).chain({
 					go: function (val) {
 						this.emit('go', val);
 					}
 				});
-
-				var eventedInstance = EventedType.create({});
+				var eventMap = {};
+				var eventedInstance = EventedType.create(eventMap);
 				var testStack = [];
 				eventedInstance.on('go', function (val) {
 					testStack.push(val);
@@ -1717,12 +1727,17 @@ describe('Trope Usage', function () {
 				eventedInstance.go(5);
 				eventedInstance.go(4);
 				expect(testStack).to.deep.equal([6,5,4]);
+				expect(eventMap).to.have.property('go');
+				expect(eventedInstance).to.be.an.instanceOf(EventedType);
+				expect(eventedInstance).to.be.an.instanceOf(BaseType);
+				expect(eventedInstance).to.have.property('baseState', 'setup');
 			});
 
-			xit('should take no arguments if set to a special new function just for initializing instead of just setting it to true', function () {
+			it('should take no arguments if set to a special new function just for initializing instead of just setting it to true', function () {
 				var EventedType = Trope({
 					autoinit: function () {
 						this.eventMap = {};
+						this.super();
 					},
 					constructor: function (eventMap) {
 						this.eventMap = eventMap;
@@ -1742,6 +1757,36 @@ describe('Trope Usage', function () {
 				eventedInstance.go(5);
 				eventedInstance.go(4);
 				expect(testStack).to.deep.equal([6,5,4]);
+				expect(eventedInstance).to.be.an.instanceOf(EventedType);
+				expect(eventedInstance).to.be.an.instanceOf(BaseType);
+				expect(eventedInstance).to.have.property('baseState', 'setup');
+			});
+
+			it('should take no arguments if set to an array of default arguments', function () {
+				var EventedType = Trope({
+					autoinit: [{}],
+					constructor: function (eventMap) {
+						this.eventMap = eventMap;
+						this.super();
+					}
+				}, EventEmitter).chain({
+					go: function (val) {
+						this.emit('go', val);
+					}
+				});
+
+				var eventedInstance = EventedType.create();
+				var testStack = [];
+				eventedInstance.on('go', function (val) {
+					testStack.push(val);
+				});
+				eventedInstance.go(6);
+				eventedInstance.go(5);
+				eventedInstance.go(4);
+				expect(testStack).to.deep.equal([6,5,4]);
+				expect(eventedInstance).to.be.an.instanceOf(EventedType);
+				expect(eventedInstance).to.be.an.instanceOf(BaseType);
+				expect(eventedInstance).to.have.property('baseState', 'setup');
 			});
 		});
 	});

@@ -97,6 +97,9 @@ var Trope = (function () {
 	var CONSTRUCTOR = 'constructor';
 	var NOOP = function () {};
 	var NULLFUNC = function Null () {};
+	var AUTOINIT_CONSTRUCTOR = 0x4d414943;
+	var AUTOINIT_INIT_FUNC = 0x4d414949;
+	var AUTOINIT_ARGS = 0x4d414941;
 	var DEFINE_ALIAS = (function (aliases) {
 		var originalLength = aliases.length;
 		var i;
@@ -240,10 +243,17 @@ var Trope = (function () {
 
 		trope.superConstr = trope.getSuperConstructor();
 
-		trope.autoInitializedTropes = [];
+		trope.autoInitializeConfigs = [];
 		trope.forEachTropeInChain(function (currentTrope) {
-			if (currentTrope.def.autoinit && currentTrope !== trope) {
-				trope.autoInitializedTropes.push(currentTrope);
+			var autoinitDef = currentTrope.def.autoinit
+			if (autoinitDef && currentTrope !== trope) {
+				if (Array.isArray(autoinitDef)) {
+					trope.autoInitializeConfigs.push({ mode: AUTOINIT_ARGS, trope: currentTrope, args: autoinitDef });
+				} else if (typeof autoinitDef === FUNCTION) {
+					trope.autoInitializeConfigs.push({ mode: AUTOINIT_INIT_FUNC, trope: currentTrope, initFunc: autoinitDef });
+				} else {
+					trope.autoInitializeConfigs.push({ mode: AUTOINIT_CONSTRUCTOR, trope: currentTrope });
+				}
 			}
 		});
 
@@ -441,8 +451,21 @@ var Trope = (function () {
 				}
 				superStack.push({ func: trope.superConstr, trope: trope.inherits, isConstructor: true });
 				if (!isSuper) {
-					trope.autoInitializedTropes.forEach(function (initTrope) {
-						pubCtx.super.as(initTrope).apply(null, args);
+					trope.autoInitializeConfigs.forEach(function (autoinitConfig) {
+						var autoinitTrope = autoinitConfig.trope;
+						if (autoinitConfig.mode === AUTOINIT_CONSTRUCTOR) {
+							pubCtx.super.as(autoinitTrope).apply(null, args);
+						} else if (autoinitConfig.mode === AUTOINIT_ARGS) {
+							pubCtx.super.as(autoinitTrope).apply(null, autoinitConfig.args);
+						} else if (autoinitConfig.mode === AUTOINIT_INIT_FUNC) {
+							superStack.push({ func: autoinitTrope.superConstr, trope: autoinitTrope.inherits, isConstructor: true });
+							if (autoinitTrope.isPrivate) {
+								autoinitConfig.initFunc.apply(getPrivateCtx(), args);
+							} else {
+								autoinitConfig.initFunc.apply(pubCtx, args);
+							}
+							superStack.pop();
+						}
 					});
 				}
 				trope.constr.apply(targetCtx, args);
