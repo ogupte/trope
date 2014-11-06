@@ -1443,6 +1443,146 @@ describe('Trope Usage', function () {
 		});
 	});
 
+	describe('Configuration: autoinit', function () {
+		var BaseType = Trope(function BaseType () {
+			this.baseState = 'setup';
+		});
+		var EventEmitter = Trope({
+			privacy: true,
+			autoinit: true,
+			inherits: BaseType,
+			type: 'EventEmitter',
+		}, function EventEmitter () {
+			this.eventMap = {};
+			this.super();
+		}, {
+			on: function (name, handler) {
+				if (this.eventMap[name] === undefined) {
+					this.eventMap[name] = [];
+				}
+				this.eventMap[name].push(handler);
+			},
+			emit: function (name) {
+				var i;
+				var args;
+				if (this.eventMap[name]) {
+					args = [];
+					for (i=1; i<arguments.length; i++) {
+						args.push(arguments[i]);
+					}
+					for (i=0; i<this.eventMap[name].length; i++) {
+						this.eventMap[name][i].apply(this.exports, args);
+					}
+				}
+			}
+		});
+
+		it('should automatically initialize an object according to the Trope it was configured for when creating an object which inherits from it', function () {
+			var EventedType = EventEmitter.chain({
+				go: function (val) {
+					this.emit('go', val);
+				}
+			});
+			var eventedInstance = EventedType.create();
+			var testStack = [];
+			eventedInstance.on('go', function (val) {
+				testStack.push(val);
+			});
+			eventedInstance.go(3);
+			eventedInstance.go(2);
+			eventedInstance.go(1);
+			expect(testStack).to.deep.equal([3,2,1]);
+			expect(eventedInstance).to.be.an.instanceOf(EventedType);
+			expect(eventedInstance).to.be.an.instanceOf(EventEmitter);
+			expect(eventedInstance).to.be.an.instanceOf(BaseType);
+			expect(eventedInstance).to.have.property('baseState', 'setup');
+		});
+
+		it('should take the arguments passed into the main constructor by default', function () {
+			var EventedType = Trope({
+				autoinit: true,
+				constructor: function (eventMap) {
+					this.eventMap = eventMap;
+					this.super();
+				}
+			}, EventEmitter).chain({
+				go: function (val) {
+					this.emit('go', val);
+				}
+			});
+			var eventMap = {};
+			var eventedInstance = EventedType.create(eventMap);
+			var testStack = [];
+			eventedInstance.on('go', function (val) {
+				testStack.push(val);
+			});
+			eventedInstance.go(6);
+			eventedInstance.go(5);
+			eventedInstance.go(4);
+			expect(testStack).to.deep.equal([6,5,4]);
+			expect(eventMap).to.have.property('go');
+			expect(eventedInstance).to.be.an.instanceOf(EventedType);
+			expect(eventedInstance).to.be.an.instanceOf(BaseType);
+			expect(eventedInstance).to.have.property('baseState', 'setup');
+		});
+
+		it('should take no arguments if set to a special new function just for initializing instead of just setting it to true', function () {
+			var EventedType = Trope({
+				autoinit: function () {
+					this.eventMap = {};
+					this.super();
+				},
+				constructor: function (eventMap) {
+					this.eventMap = eventMap;
+				}
+			}, EventEmitter).chain({
+				go: function (val) {
+					this.emit('go', val);
+				}
+			});
+
+			var eventedInstance = EventedType.create();
+			var testStack = [];
+			eventedInstance.on('go', function (val) {
+				testStack.push(val);
+			});
+			eventedInstance.go(6);
+			eventedInstance.go(5);
+			eventedInstance.go(4);
+			expect(testStack).to.deep.equal([6,5,4]);
+			expect(eventedInstance).to.be.an.instanceOf(EventedType);
+			expect(eventedInstance).to.be.an.instanceOf(BaseType);
+			expect(eventedInstance).to.have.property('baseState', 'setup');
+		});
+
+		it('should take no arguments if set to an array of default arguments', function () {
+			var EventedType = Trope({
+				autoinit: [{}],
+				constructor: function (eventMap) {
+					this.eventMap = eventMap;
+					this.super();
+				}
+			}, EventEmitter).chain({
+				go: function (val) {
+					this.emit('go', val);
+				}
+			});
+
+			var eventedInstance = EventedType.create();
+			var testStack = [];
+			eventedInstance.on('go', function (val) {
+				testStack.push(val);
+			});
+			eventedInstance.go(6);
+			eventedInstance.go(5);
+			eventedInstance.go(4);
+			expect(testStack).to.deep.equal([6,5,4]);
+			expect(eventedInstance).to.be.an.instanceOf(EventedType);
+			expect(eventedInstance).to.be.an.instanceOf(BaseType);
+			expect(eventedInstance).to.have.property('baseState', 'setup');
+		});
+	});
+
 	describe('Scenarios', function () {
 		describe('simple', function () {});
 		describe('complex', function () {});
@@ -1648,145 +1788,6 @@ describe('Trope Usage', function () {
 				expect(Trope.instanceOf(pumbaa, Mammal)).to.be.true;
 				Trope.instanceOf(pumbaa, Animal); // true
 				expect(Trope.instanceOf(pumbaa, Animal)).to.be.true;
-			});
-		});
-		describe('self initializing tropes', function () {
-			var BaseType = Trope(function BaseType () {
-				this.baseState = 'setup';
-			});
-			var EventEmitter = Trope({
-				privacy: true,
-				autoinit: true,
-				inherits: BaseType,
-				type: 'EventEmitter',
-			}, function EventEmitter () {
-				this.eventMap = {};
-				this.super();
-			}, {
-				on: function (name, handler) {
-					if (this.eventMap[name] === undefined) {
-						this.eventMap[name] = [];
-					}
-					this.eventMap[name].push(handler);
-				},
-				emit: function (name) {
-					var i;
-					var args;
-					if (this.eventMap[name]) {
-						args = [];
-						for (i=1; i<arguments.length; i++) {
-							args.push(arguments[i]);
-						}
-						for (i=0; i<this.eventMap[name].length; i++) {
-							this.eventMap[name][i].apply(this.exports, args);
-						}
-					}
-				}
-			});
-
-			it('should work', function () {
-				var EventedType = EventEmitter.chain({
-					go: function (val) {
-						this.emit('go', val);
-					}
-				});
-				var eventedInstance = EventedType.create();
-				var testStack = [];
-				eventedInstance.on('go', function (val) {
-					testStack.push(val);
-				});
-				eventedInstance.go(3);
-				eventedInstance.go(2);
-				eventedInstance.go(1);
-				expect(testStack).to.deep.equal([3,2,1]);
-				expect(eventedInstance).to.be.an.instanceOf(EventedType);
-				expect(eventedInstance).to.be.an.instanceOf(EventEmitter);
-				expect(eventedInstance).to.be.an.instanceOf(BaseType);
-				expect(eventedInstance).to.have.property('baseState', 'setup');
-			});
-
-			it('should take the arguments passed into the main constructor by default', function () {
-				var EventedType = Trope({
-					autoinit: true,
-					constructor: function (eventMap) {
-						this.eventMap = eventMap;
-						this.super();
-					}
-				}, EventEmitter).chain({
-					go: function (val) {
-						this.emit('go', val);
-					}
-				});
-				var eventMap = {};
-				var eventedInstance = EventedType.create(eventMap);
-				var testStack = [];
-				eventedInstance.on('go', function (val) {
-					testStack.push(val);
-				});
-				eventedInstance.go(6);
-				eventedInstance.go(5);
-				eventedInstance.go(4);
-				expect(testStack).to.deep.equal([6,5,4]);
-				expect(eventMap).to.have.property('go');
-				expect(eventedInstance).to.be.an.instanceOf(EventedType);
-				expect(eventedInstance).to.be.an.instanceOf(BaseType);
-				expect(eventedInstance).to.have.property('baseState', 'setup');
-			});
-
-			it('should take no arguments if set to a special new function just for initializing instead of just setting it to true', function () {
-				var EventedType = Trope({
-					autoinit: function () {
-						this.eventMap = {};
-						this.super();
-					},
-					constructor: function (eventMap) {
-						this.eventMap = eventMap;
-					}
-				}, EventEmitter).chain({
-					go: function (val) {
-						this.emit('go', val);
-					}
-				});
-
-				var eventedInstance = EventedType.create();
-				var testStack = [];
-				eventedInstance.on('go', function (val) {
-					testStack.push(val);
-				});
-				eventedInstance.go(6);
-				eventedInstance.go(5);
-				eventedInstance.go(4);
-				expect(testStack).to.deep.equal([6,5,4]);
-				expect(eventedInstance).to.be.an.instanceOf(EventedType);
-				expect(eventedInstance).to.be.an.instanceOf(BaseType);
-				expect(eventedInstance).to.have.property('baseState', 'setup');
-			});
-
-			it('should take no arguments if set to an array of default arguments', function () {
-				var EventedType = Trope({
-					autoinit: [{}],
-					constructor: function (eventMap) {
-						this.eventMap = eventMap;
-						this.super();
-					}
-				}, EventEmitter).chain({
-					go: function (val) {
-						this.emit('go', val);
-					}
-				});
-
-				var eventedInstance = EventedType.create();
-				var testStack = [];
-				eventedInstance.on('go', function (val) {
-					testStack.push(val);
-				});
-				eventedInstance.go(6);
-				eventedInstance.go(5);
-				eventedInstance.go(4);
-				expect(testStack).to.deep.equal([6,5,4]);
-				expect(eventedInstance).to.be.an.instanceOf(EventedType);
-				expect(eventedInstance).to.be.an.instanceOf(BaseType);
-				expect(eventedInstance).to.have.property('baseState', 'setup');
 			});
 		});
 	});
