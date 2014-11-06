@@ -88,6 +88,7 @@ function applyAliases(object, aliases, target) {
 
 */
 var Trope = (function () {
+	var globalCtx = this;
 	var exports = Define;
 	var OBJECT = 'object';
 	var FUNCTION = 'function';
@@ -278,6 +279,11 @@ var Trope = (function () {
 				var pubCtx = this;
 				var privateCtx;
 				var targetCtx = pubCtx;
+				if (pubCtx === globalCtx) {
+					// was not called with the `new` operator
+					pubCtx = Object.create(trope.finalProto);
+					targetCtx = pubCtx;
+				}
 				function getPrivateCtx () {
 					if (isSuper) {
 						return memoArgs[1];
@@ -441,6 +447,7 @@ var Trope = (function () {
 				}
 				trope.constr.apply(targetCtx, args);
 				superStack.pop();
+				return pubCtx;
 			};
 		},
 		getPrototype: function () {

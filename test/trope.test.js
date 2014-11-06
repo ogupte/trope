@@ -1675,7 +1675,7 @@ describe('Trope Usage', function () {
 				expect(testStack).to.deep.equal([6,5,4]);
 			});
 
-			xit('should be able to create an instance by calling the constructor function without the `new` operator', function () {
+			it('should be able to create an instance by calling the constructor function without the `new` operator', function () {
 				var testStack = [];
 				var ee = EventEmitter();
 				ee.on('go', function (val) {
