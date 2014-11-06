@@ -492,6 +492,75 @@ describe('Trope Usage', function () {
 		});*/
 	});
 
+	describe('Instantiation', function () {
+		var EventEmitter = Trope({
+		}, function EventEmitter () {
+			this.eventMap = {};
+		}, {
+			on: function (name, handler) {
+				if (this.eventMap[name] === undefined) {
+					this.eventMap[name] = [];
+				}
+				this.eventMap[name].push(handler);
+			},
+			emit: function (name) {
+				var i;
+				var args;
+				if (this.eventMap[name]) {
+					args = [];
+					for (i=1; i<arguments.length; i++) {
+						args.push(arguments[i]);
+					}
+					for (i=0; i<this.eventMap[name].length; i++) {
+						this.eventMap[name][i].apply(this.exports, args);
+					}
+				}
+			}
+		});
+
+		it('should be able to create an instance by calling the constructor function with the `new` operator', function () {
+			var testStack = [];
+			var ee = new EventEmitter();
+			ee.on('go', function (val) {
+				testStack.push(val);
+			});
+			ee.emit('go', 9);
+			ee.emit('go', 99);
+			ee.emit('go', 999);
+			expect(ee).to.be.an.object;
+			expect(ee).to.be.an.instanceOf(EventEmitter);
+			expect(testStack).to.deep.equal([9,99,999]);
+		});
+
+		it('should be able to create an instance by calling the constructor function without the `new` operator', function () {
+			var testStack = [];
+			var ee = EventEmitter();
+			ee.on('go', function (val) {
+				testStack.push(val);
+			});
+			ee.emit('go', 9);
+			ee.emit('go', 99);
+			ee.emit('go', 999);
+			expect(ee).to.be.an.object;
+			expect(ee).to.be.an.instanceOf(EventEmitter);
+			expect(testStack).to.deep.equal([9,99,999]);
+		});
+
+		it('should be able to create an instance by calling the `create` static function on the trope constructor', function () {
+			var testStack = [];
+			var ee = EventEmitter.create();
+			ee.on('go', function (val) {
+				testStack.push(val);
+			});
+			ee.emit('go', 9);
+			ee.emit('go', 99);
+			ee.emit('go', 999);
+			expect(ee).to.be.an.object;
+			expect(ee).to.be.an.instanceOf(EventEmitter);
+			expect(testStack).to.deep.equal([9,99,999]);
+		});
+	});
+
 	//Organism > Animal > Vertebrate > Mammal > Carnivore > Canine > Dog > Dachshund
 	describe('Inheritance', function () {
 		var Organism;
@@ -1673,20 +1742,6 @@ describe('Trope Usage', function () {
 				eventedInstance.go(5);
 				eventedInstance.go(4);
 				expect(testStack).to.deep.equal([6,5,4]);
-			});
-
-			it('should be able to create an instance by calling the constructor function without the `new` operator', function () {
-				var testStack = [];
-				var ee = EventEmitter();
-				ee.on('go', function (val) {
-					testStack.push(val);
-				});
-				ee.emit('go', 9);
-				ee.emit('go', 99);
-				ee.emit('go', 999);
-				expect(ee).to.be.an.object;
-				expect(ee).to.be.an.instanceOf(EventEmitter);
-				expect(testStack).to.deep.equal([9,99,999]);
 			});
 		});
 	});
