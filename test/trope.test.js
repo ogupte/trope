@@ -1940,17 +1940,35 @@ describe('Trope Usage', function () {
 			});
 
 			describe('Inheritance (multiple)', function () {
+				// Setup for shared data
+				// used when one example sets up another
+				var shared = {};
+				var Logger;
+				var EventEmitter;
+				var Cat;
+				afterEach(function () {
+					Logger = shared.Logger;
+					EventEmitter = shared.EventEmitter;
+					Cat = shared.Cat;
+				});
+
+				// Stub for console.log
 				var console_log;
 				var logBuffer;
 				before(function () {
 					console_log = console.log;
-					logBuffer = [];
 					console.log = function (msg) {
 						logBuffer.push(msg);
 					};
 				});
+				beforeEach(function () {
+					logBuffer = [];
+				});
+				after(function () {
+					console.log = console_log;
+				});
 
-				it('should work (inheritance-multiple)', function () {
+				it('should work (inheritance-multiple-setup)', function () {
 					// [EXAMPLE]
 					// Define a Logger
 					var Logger = Trope({
@@ -1973,12 +1991,25 @@ describe('Trope Usage', function () {
 						fire: function (name, data) {
 							if (this.eventMap && this.eventMap[name]) {
 								this.eventMap[name].forEach(function (handler) {
-									handler(data);
-								});
+									handler.call(this, data);
+								}.bind(this));
 							}
 						}
 					});
 
+					// [CHECK]
+					expect(Logger.create()).to.be.an.instanceOf(Logger);
+					expect(Logger.create()).to.not.be.an.instanceOf(EventEmitter);
+					expect(EventEmitter.create()).to.not.be.an.instanceOf(Logger);
+					expect(EventEmitter.create()).to.be.an.instanceOf(EventEmitter);
+
+					// [SHARE]
+					shared.Logger = Logger;
+					shared.EventEmitter = EventEmitter;
+				});
+
+				it('should work (inheritance-multiple-basic)', function () {
+					// [EXAMPLE]
 					var EventedLogger = Trope(Logger).turn(EventEmitter);
 
 					var eventedLogger = EventedLogger.create();
@@ -1995,13 +2026,65 @@ describe('Trope Usage', function () {
 					expect(logBuffer).to.deep.equal(['LOGME: hello', 'LOGME: world']);
 				});
 
-				after(function () {
-					console.log = console_log;
+				it('should work (inheritance-multiple-extended-cat)', function () {
+					// [EXAMPLE]
+					// Define a `Cat`
+					var Cat = Trope(function (name) { // init function
+						this.name = name;
+					}, {
+						vocalize: function () {
+							return 'Meow!';
+						}
+					});
+
+					var cat = Cat.create('Raja');
+					cat.vocalize(); // 'Meow!'
+
+					// [CHECK]
+					expect(cat).to.be.an.instanceOf(Cat);
+					expect(cat.vocalize()).to.equal('Meow!');
+
+					// [SHARE]
+					shared.Cat = Cat;
+				});
+
+				it('should work (inheritance-multiple-extended)', function () {
+					// [EXAMPLE]
+					// Use `Logger`, `EventEmitter`, and `Cat` to define something completely different
+					var LoggingEventedCat = Trope(Logger).
+						turn(EventEmitter).
+						turn(Cat).
+					turn(function (name) { // init function
+						this.super.as(Cat)(name);
+						this.on('meow', function (sound) {
+							console.log(this.name + ': ' + sound);
+						});
+					},{ // overload the `vocalize` method inherited from `Cat`
+						vocalize: function (sound) {
+							sound = sound || this.super.as(Cat)();
+							this.fire('meow', sound);
+						}
+					});
+
+					var loggingEventedCat = LoggingEventedCat.create('Raja');
+					loggingEventedCat.vocalize(); // logs 'Raja: Meow!'
+					loggingEventedCat.vocalize('Purr...'); // logs 'Raja: Purr...'
+
+					// [CHECK]
+					expect(logBuffer).to.deep.equal(['Raja: Meow!', 'Raja: Purr...']);
 				});
 			});
 
 			describe('Backward compatible with native JS constructors', function () {
-				it('should work (native-extend)', function () {
+				// Setup for shared data
+				// used when one example sets up another
+				var shared = {};
+				var Shape;
+				afterEach(function () {
+					Shape = shared.Shape;
+				});
+
+				it('should work (native-basic)', function () {
 					// [EXAMPLE]
 					// Native JS constructor Shape
 					function Shape (sides) {
@@ -2013,13 +2096,18 @@ describe('Trope Usage', function () {
 
 					// Create a Trope out of Shape and immediately create a Shape object
 					var triangle = Trope(Shape).create(3);
-					(triangle instanceof Shape); // true
+					triangle instanceof Shape; // true
 
-					it('should work (native-basic)', function () {
-						expect(triangle).to.be.an.instanceOf(Shape);
-						expect(triangle).to.have.property('sides', 3);
-					});
+					// [CHECK]
+					expect(triangle).to.be.an.instanceOf(Shape);
+					expect(triangle).to.have.property('sides', 3);
 
+					// [SHARE]
+					shared.Shape = Shape;
+				});
+
+				it('should work (native-extend)', function () {
+					// [EXAMPLE]
 					// Any Trope, even one based on a Native JS constructor, can be extended
 					var Quadrilateral = Trope(Shape).turn(function (opts) {
 						this.sides = 4;
