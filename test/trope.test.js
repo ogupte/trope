@@ -1791,11 +1791,10 @@ describe('Trope Usage', function () {
 			});
 		});
 		describe('Better Examples', function () {
-			describe('Use Tropes to create object factories (basic)', function () {
+			describe('Object factories (basic)', function () {
 				it('should work (basic-factories)', function () {
 					// [EXAMPLE]
 					var Greeter = Trope({
-						name: null,
 						setName: function (name) {
 							this.name = name;
 						},
@@ -1815,7 +1814,7 @@ describe('Trope Usage', function () {
 				});
 			});
 
-			describe('Use Tropes to create object factories (initializers)', function () {
+			describe('Object factories (initializers)', function () {
 				it('should work (basic-initializers)', function () {
 					// [EXAMPLE]
 					// If you want to initialize state when you create an object, you can pass in an initializer function
@@ -1845,7 +1844,7 @@ describe('Trope Usage', function () {
 				});
 			});
 
-			describe('Use Tropes to have private properties (basic)', function () {
+			describe('Private properties (basic)', function () {
 				it('should work (privacy-basic)', function () {
 					// [EXAMPLE]
 					// You could define a Trope in `privacy` mode to prevent other code from accessing/modifying object properties
@@ -1871,7 +1870,7 @@ describe('Trope Usage', function () {
 				});
 			});
 
-			describe('Use Tropes to have private properties (exports)', function () {
+			describe('Private properties (exports)', function () {
 				it('should work (privacy-exports)', function () {
 					// [EXAMPLE]
 					// In `privacy` mode, you can still expose public properties using `exports`
@@ -2054,17 +2053,17 @@ describe('Trope Usage', function () {
 					var LoggingEventedCat = Trope(Logger).
 						turn(EventEmitter).
 						turn(Cat).
-					turn(function (name) { // init function
-						this.super.as(Cat)(name);
-						this.on('meow', function (sound) {
-							console.log(this.name + ': ' + sound);
+						turn(function (name) { // init function
+							this.super.as(Cat)(name);
+							this.on('meow', function (sound) {
+								console.log(this.name + ': ' + sound);
+							});
+						},{ // overload the `vocalize` method inherited from `Cat`
+							vocalize: function (sound) {
+								sound = sound || this.super.as(Cat)();
+								this.fire('meow', sound);
+							}
 						});
-					},{ // overload the `vocalize` method inherited from `Cat`
-						vocalize: function (sound) {
-							sound = sound || this.super.as(Cat)();
-							this.fire('meow', sound);
-						}
-					});
 
 					var loggingEventedCat = LoggingEventedCat.create('Raja');
 					loggingEventedCat.vocalize(); // logs 'Raja: Meow!'
@@ -2075,7 +2074,7 @@ describe('Trope Usage', function () {
 				});
 			});
 
-			describe('Backward compatible with native JS constructors', function () {
+			describe('Backward compatibility with native JavaScript constructors', function () {
 				// Setup for shared data
 				// used when one example sets up another
 				var shared = {};
@@ -2084,7 +2083,7 @@ describe('Trope Usage', function () {
 					Shape = shared.Shape;
 				});
 
-				it('should work (native-basic)', function () {
+				it('should work (native-setup)', function () {
 					// [EXAMPLE]
 					// Native JS constructor Shape
 					function Shape (sides) {
@@ -2095,15 +2094,29 @@ describe('Trope Usage', function () {
 					};
 
 					// Create a Trope out of Shape and immediately create a Shape object
+					var triangle = new Shape(3);
+					triangle instanceof Shape; // true
+					triangle.getSides(); // 3
+
+					// [CHECK]
+					expect(triangle).to.be.an.instanceOf(Shape);
+					expect(triangle.getSides()).to.equal(3);
+					expect(triangle).to.have.property('sides', 3);
+
+					// [SHARE]
+					shared.Shape = Shape;
+				});
+
+				it('should work (native-basic)', function () {
+					// [EXAMPLE]
+					// Create a Trope out of Shape and immediately create a Shape object
 					var triangle = Trope(Shape).create(3);
 					triangle instanceof Shape; // true
 
 					// [CHECK]
 					expect(triangle).to.be.an.instanceOf(Shape);
 					expect(triangle).to.have.property('sides', 3);
-
-					// [SHARE]
-					shared.Shape = Shape;
+					expect(triangle.getSides()).to.equal(3);
 				});
 
 				it('should work (native-extend)', function () {
@@ -2114,11 +2127,15 @@ describe('Trope Usage', function () {
 					});
 
 					var quadrilateral = Quadrilateral.create();
+					quadrilateral instanceof Quadrilateral;
+					quadrilateral instanceof Shape;
+					quadrilateral.getSides(); // 4
 
 					// [CHECK]
-					expect(quadrilateral).to.be.an.instanceOf(Shape);
 					expect(quadrilateral).to.be.an.instanceOf(Quadrilateral);
+					expect(quadrilateral).to.be.an.instanceOf(Shape);
 					expect(quadrilateral).to.have.property('sides', 4);
+					expect(quadrilateral.getSides()).to.equal(4);
 				});
 			});
 		});
