@@ -1790,5 +1790,140 @@ describe('Trope Usage', function () {
 				expect(Trope.instanceOf(pumbaa, Animal)).to.be.true;
 			});
 		});
+		describe('Better Examples', function () {
+			describe('Use Tropes to create object factories (basic)', function () {
+				var Greeter = Trope({
+					name: null,
+					setName: function (name) {
+						this.name = name;
+					},
+					sayHello: function () {
+						return 'Hello, ' + this.name + '!';
+					}
+				});
+
+				var greeter = Greeter.create();
+				greeter.setName('Bertrand');
+				greeter.sayHello(); // 'Hello, Bertrand!'
+
+				it('should work (basic-factories)', function () {
+					expect(greeter).to.be.an.instanceOf(Greeter);
+					expect(greeter).to.have.property('name', 'Bertrand');
+					expect(greeter.sayHello()).to.equal('Hello, Bertrand!');
+				});
+			});
+
+			describe('Use Tropes to create object factories (initializers)', function () {
+				// If you want to initialize state when you create an object, you can pass in an initializer function
+				var Greeter = Trope(function (name) {
+					this.setName(name);
+				},{
+					setName: function (name) {
+						this.name = name;
+					},
+					sayHello: function () {
+						return 'Hello, ' + this.name + '!';
+					}
+				});
+
+				var greeter = Greeter.create('Bertrand');
+				greeter.name; // 'Bertrand'
+				greeter.sayHello(); // 'Hello, Bertrand!'
+
+				// you can alternatively create new objects by calling the Trope directly as a function or constructor
+				greeter = Greeter('Bertrand');
+				greeter = new Greeter('Bertrand');
+
+				it('should work (basic-initializers)', function () {
+					expect(greeter).to.be.an.instanceOf(Greeter);
+					expect(greeter).to.have.property('name', 'Bertrand');
+					expect(greeter.sayHello()).to.equal('Hello, Bertrand!');
+				});
+			});
+
+			describe('Use Tropes to have private properties (basic)', function () {
+				// You could define a Trope in `privacy` mode to prevent other code from accessing/modifying object properties
+				var Greeter = Trope({ privacy: true }, function (name) {
+					this.setName(name);
+				},{
+					setName: function (name) {
+						this.name = name;
+					},
+					sayHello: function () {
+						return 'Hello, ' + this.name + '!';
+					}
+				});
+
+				var greeter = Greeter.create('Bertrand');
+				greeter.name; // undefined
+				greeter.sayHello(); // 'Hello, Bertrand!'
+
+				it('should work (privacy-basic)', function () {
+					expect(greeter).to.be.an.instanceOf(Greeter);
+					expect(greeter).to.not.have.property('name');
+					expect(greeter.sayHello()).to.equal('Hello, Bertrand!');
+				});
+			});
+
+			describe('Use Tropes to have private properties (exports)', function () {
+				// In `privacy` mode, you can still expose public properties using `exports`
+				var Greeter = Trope({ privacy: true }, function (name) {
+					this.setName(name);
+				},{
+					setName: function (name) {
+						this.name = name;
+						this.exports.exposedName = name;
+					},
+					sayHello: function () {
+						return 'Hello, ' + this.name + '!';
+					}
+				});
+
+				var greeter = Greeter.create('Bertrand');
+				greeter.name; // undefined
+				greeter.exposedName; // 'Bertrand'
+				greeter.sayHello(); // 'Hello, Bertrand!'
+
+				it('should work (privacy-exports)', function () {
+					expect(greeter).to.be.an.instanceOf(Greeter);
+					expect(greeter).to.not.have.property('name');
+					expect(greeter).to.have.property('exposedName', 'Bertrand');
+					expect(greeter.sayHello()).to.equal('Hello, Bertrand!');
+				});
+			});
+
+			describe('Backward compatible with native JS constructors', function () {
+				// Native JS constructor Shape
+				function Shape (sides) {
+					this.sides = sides;
+				}
+				Shape.prototype.getSides = function () {
+					return this.sides;
+				};
+
+				// Create a Trope out of Shape and immediately create a Shape object
+				var triangle = Trope(Shape).create(3);
+				(triangle instanceof Shape); // true
+
+				it('should work (native-basic)', function () {
+					expect(triangle).to.be.an.instanceOf(Shape);
+					expect(triangle).to.have.property('sides', 3);
+				});
+
+				// Any Trope, even one based on a Native JS constructor, can be extended
+				var Quadrilateral = Trope(Shape).turn(function (opts) {
+					this.sides = 4;
+				});
+
+				var quadrilateral = Quadrilateral.create();
+
+
+				it('should work (native-extend)', function () {
+					expect(quadrilateral).to.be.an.instanceOf(Shape);
+					expect(quadrilateral).to.be.an.instanceOf(Quadrilateral);
+					expect(quadrilateral).to.have.property('sides', 4);
+				});
+			});
+		});
 	});
 });
