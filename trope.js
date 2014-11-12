@@ -1,3 +1,28 @@
+((function (namespace, moduleDefinition) {
+	'use strict';
+	var MODULE;
+	var EXPORTS;
+	var isBrowser = false;
+	if (typeof window !== 'undefined') { // define for browser
+		isBrowser = true;
+		MODULE = {
+			'exports': {}
+		};
+		EXPORTS = MODULE.exports;
+	} else if (typeof module !== 'undefined' && module.exports) { // define for CommonJS
+		MODULE = module;
+		EXPORTS = module.exports;
+	}
+	var moduleDefinitionReturns = moduleDefinition(MODULE, EXPORTS);
+	if (moduleDefinitionReturns) {
+		MODULE.exports = moduleDefinitionReturns;
+	}
+	if (isBrowser) {
+		window[namespace] = MODULE.exports;
+	}
+	return moduleDefinitionReturns;
+})('Trope', function (module, exports) {
+//START trope.js
 'use strict';
 
 /*
@@ -717,3 +742,5 @@ var Trope = (function () {
 }());
 
 module.exports = Trope;
+//END trope.js
+}));

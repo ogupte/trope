@@ -3,13 +3,16 @@
 /* jslint undef:false */
 /* globals describe,it,before,beforeEach,after,afterEach,xdescribe,xit */
 /* jslint expr:true */
-if (typeof require === 'undefined') {
-	var expect = chai.expect;
-	var tropeClass = window.exports;
-} else {
-	var expect = require('chai').expect;
-	var Trope = require('../trope.js');
+
+if (typeof require !== 'undefined') {
+	if (typeof chai === 'undefined') {
+		var chai = require('chai');
+	}
+	if (typeof Trope === 'undefined') {
+		var Trope = require('../trope.js');
+	}
 }
+var expect = chai.expect;
 
 describe('Trope Static', function () {
 	describe('Trope.define([definition])', function () {
