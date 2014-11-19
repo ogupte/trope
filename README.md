@@ -1,13 +1,20 @@
 # trope.js
 ## Description
-Use Trope to simplify development by taking advantage of JS prototypes. Prototypes are at the core of this library which uses them to implement [private state](#private-properties), access [super methods and constructors](#inheritance), and create composite objects with [multiple inheritance](#multiple-inheritance). It's also easy to start integrating with most projects since [native JS](#native-js-compatibility) constructors are fully [backward compatible](#native-js-compatibility) with Trope definitions.
+Trope provides a simplified interface to JavaScript's native inheritance model. Prototypes are at the core of this library. Trope uses them to implement [private state](#private-properties), provide access to [super methods and constructors](#inheritance), and create composite objects with [multiple inheritance](#multiple-inheritance). It's also easy to start integrating with most projects since [native JS](#native-js-compatibility) constructors and object prototypes are fully [backward compatible](#native-js-compatibility) with Trope.
 
 [See examples](#examples) for some ways Trope can be used.
 
-### Private State<a id="description-private-members"></a>
-Trope takes a unique approach to implementing private state in objects. Most existing libraries and patterns use logic defined in a closure to prevent external access. Trope combines this approach with prototypes to create truly private members which are actual object properties.
+## Features
+* [Simplified object inheritance](#inheritance)
+* [Private object state](#description-private-members)
+* [Super methods](#description-super)
+* [Multiple inheritance](#description-multiple-inheritance)
+* [Compatible with native JS](#native-js-compatibility)
 
-Normally, objects follow a similar prototype chain where the only reference to the object is the the HEAD of the chain.
+### Private object state<a id="description-private-members"></a>
+Trope takes a unique approach to implementing private state in objects. Most existing libraries and patterns use logic defined in a closure to prevent external access. Trope combines this with prototypes to maintain a private state with hidden properties on the created object.
+
+In most cases, objects follow use a prototype chain similar to the following where the only reference to the object is the the HEAD of the chain.
 ```
    |
   \|/
@@ -21,23 +28,23 @@ Trope creates another link in this chain (`{private}`) which can only be accesse
                 V
 {private} -> {public} -> {proto} -> {object} -> null
 ```
-This creates an object which has truly private members rather than just some private state within a closure. It also gives any inheriting definitions access to this private context, elevating these members to a *protected* status.
+This creates an object which has real private members rather than just some private state on a separate object set within a closure. It also gives any inheriting definitions access to this private context, elevating these members to a *protected* status. [see example](#private-properties).
 
-### Access to Super<a id="description-super"></a>
-Accessing super constructors and methods in JS involves code like `SuperClass.call(this, arg1, ...)`. In Trope, `this.super()` is smart enough to know which is the super function of the currently executing function, even if one doesn't exist (in which case, `this.super` will be `undefined`). This makes for a lot cleaner implementions when inheritance is involved, and allows the developer to new links to the middle of inheritance chains without having to change references to call the correct super functions.
+### Access to Super Methods<a id="description-super"></a>
+Accessing super methods in JS usually involves calls like `Super.prototype.methodName.call(this, arg1, ...)`. With Trope, `this.super()` is smart enough to know which function is the super method of the current context. This makes your code a lot easier to read and write when dealing with inheritance. It also allows the developer to create new links to the middle of inheritance chains without having to update references when calling super methods. [see example](#inheritance).
 
-Another cool feature of the super implementation is that if you inheriting from many different Tropes, you can specificically call out which one you'd like to reference with `this.super.as`. This enables the developer to call masked functions of Tropes that are not direct parents.
+If your Trope is inheriting from many different parents, you can call specific super methods with `this.super.as` allowing you to call masked functions of parents from anywhere in the inheritance chain. [see example](#multiple-inheritance).
 
 ### Multiple Inheritance<a id="description-multiple-inheritance"></a>
-Multiple Inheritance is not a feature of the JavaScript language. This is a good thing! Single inheritance keeps object hierarchies simple and relatively easy to reason about since an object can only inherit from one other object.
+Multiple Inheritance is not a feature of the JavaScript language. This is a good thing! The single inheritance restriction eliminates a lot of the complexity involved with allowing object to inherit from multiple parents.
 
-That said, developers have time and again have attempted to get around this property of the language by using antipatterns like mixins. This can be harmful since mixing in properties dirties the prototype chain by pretending it doesn't exist. There is also information loss about the type of object being mixed in. Collisions often occur and existing properties are overwritten, losing references to the original object properties or methods.
+Still, there is a strong desire to inherit from many disparate parents and the ways some people go about this can be damaging to a system and are often the source of new bugs. For instance, when using a mix-in function (or a for..in loop) there is information loss about the type of object being mixed in. When collisions occur, properties are overwritten, references are lost, and the prototype chain is dirtied. These issues could be overcome by feature detection or some other mechanism, but it's easier to embrace prototypes instead of pretending they don't exist.
 
-Trope mitigates these issues by making sure the prototype chain remains clean, overloaded methods can be accessed with `this.super.as`, and it is still possible to check the object instanceof relationship (indirectly).
+Trope handles multiple inheritance by making sure the prototype chain remains clean. Overloaded methods can be accessed with `this.super.as`, private state can maintained or shared (protected), and any object's instanceof relationship (via `Trope.instanceOf`) can be determined.
 
-The implementation required that dynamically created definitions be created on-the-fly so that a semantically *multiple inheritance* definition can be represented in JavaScript's *single inheritance* structure.
+The implementation requires that dynamically created Tropes are generated on-the-fly so that we can use JavaScript's single inheritance paradigm to emulate a *multiple inheritance* definition.
 
-Refer to the [LoggingEventedCat](#LoggingEventedCat) example. The object `loggingEventedCat` does not inherit from `EventEmitter` but rather it inherits from the dynamically generated `[EventEmitter which inherits Logger]`. This allows for multiple parents to be normalized into a single, direct parent chain of Tropes. This is the reason using the native `instanceof` operator on objects created from multiple inheritance will not work, however the `Trope.instanceOf` function will return the correct relationship.
+Refer to the [LoggingEventedCat](#LoggingEventedCat) example. In reality, the object `loggingEventedCat` does not inherit from `EventEmitter`. Instead it inherits from the dynamically created `[EventEmitter which inherits Logger]`. This allows for multiple parents to be normalized into a single, direct chain of parent Tropes. For this reason, using the native `instanceof` operator on objects created using multiple inheritance will not work, however the `Trope.instanceOf` function will determine the correct relationship.
 
 ### Examples<a id="examples"></a>
 * [Object factories](#object-factories)
