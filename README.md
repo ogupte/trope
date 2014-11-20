@@ -1,6 +1,6 @@
 # trope.js
-## Description
-Trope exposes a simple interface for JavaScript inheritance and provides some extra capabilities. Prototypes are at the core of this tool  where they are used to maintain [private state](#private-properties), access [super methods and constructors](#inheritance), and create  objects with [multiple inheritance](#multiple-inheritance). It's easy to start integrating with most projects since [native JS](#native-js-compatibility) constructors, object prototypes and ES6 classes are fully [compatible](#native-js-compatibility) with Trope.
+## Overview
+Trope is a simple interface for JavaScript inheritance that provides some extra capabilities. Prototypes are at the core of this tool where they are used to maintain [private state](#private-properties), access [super methods and constructors](#inheritance), and create  objects with [multiple inheritance](#multiple-inheritance). It's easy to start integrating with most projects since [native JS](#native-js-compatibility) constructors, object prototypes and ES6 classes are fully [compatible](#native-js-compatibility) with Trope.
 
 [See examples](#examples).
 
@@ -12,11 +12,12 @@ Trope exposes a simple interface for JavaScript inheritance and provides some ex
 * [Compatible with native JS](#native-js-compatibility)
 
 ### Another OO Lib, seriously?
-I know OO libs are somewhat of a...well [trope](http://en.wiktionary.org/wiki/trope#Noun). The reason for that is because different people have different (strongly-held) beliefs about how object-oriented should work. This library tries not to take a stance on the various models that some might subscribe to about OO. The purpose is not to change your way of thinking, but to provide a tool that can make OO JavaScript a lot easier to code, review, and test.
+I know that OO libs are somewhat of a...well [trope](http://en.wiktionary.org/wiki/trope#Noun). The reason is because different people have different, sometimes strongly-held beliefs about how object-oriented programming works what it should look like. As the author, I am not very opinionated on this subject and feel you should be able to use whatever paradigm you subscribe to. The purpose of Trope is not to change your way of thinking, but to provide a tool that can make OO JavaScript a lot easier to code, review, and test.
 
-### But traits, classes, mixins, monads, gonads...
-Yes those are all great abstractions (except maybe gonads), and you should be using each of them where appropriate. Trope doesn't claim to follow the one true paradigm, but it does make it simple to quickly code up object factories that play nice with existing native JS constructors / ES6 classes, use inheritance, respect private members, call overloaded functions, and do multiple inheritance.
+#### But traits, classes, mixins, monads, gonads...
+Yes those are all great abstractions (except maybe gonads), and you should use each of them where appropriate. Trope doesn't claim to follow the one true paradigm, but it does make it simple to quickly code up object factories that play nice with native JS, use inheritance, respect private members, call overloaded functions, and do multiple inheritance.
 
+## Feature Details
 ### Private object state<a id="description-private-members"></a>
 Trope takes a slightly unique approach to implementing private state in objects. Most existing libraries and patterns use logic defined in a closure to prevent external access. Trope combines this with prototypes to maintain a private state with hidden properties on the created object.
 
