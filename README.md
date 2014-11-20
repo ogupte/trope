@@ -54,6 +54,7 @@ Refer to the [LoggingEventedCat](#LoggingEventedCat) example. In reality, the ob
 * [Native JS Compatibility](#native-js-compatibility)
 
 #### Object factories<a id="object-factories"></a>
+A simple object factory.
 ```javascript
 var Greeter = Trope({
     setName: function (name) {
@@ -68,7 +69,7 @@ var greeter = Greeter.create();
 greeter.setName('Bertrand');
 greeter.sayHello(); // 'Hello, Bertrand!'
 ```
-If you want to initialize state when you create an object, you can pass in an *initializer function*.
+Pass in an *initializer* function, to set state upon creation.
 ```javascript
 var Greeter = Trope(function (name) {
     this.setName(name);
@@ -85,7 +86,7 @@ var greeter = Greeter.create('Bertrand');
 greeter.name; // 'Bertrand'
 greeter.sayHello(); // 'Hello, Bertrand!'
 ```
-You can also create new objects by calling the Trope directly as a function or constructor with `new`.
+New objects can also be created by calling the Trope as a function with or without the `new` operator.
 ```javascript
 greeter = Greeter.create('Bertrand');
 greeter = Greeter('Bertrand');
@@ -93,7 +94,7 @@ greeter = new Greeter('Bertrand');
 ```
 
 #### Private properties<a id="private-properties"></a>
-You can define a Trope in `privacy` mode to prevent outside code from accessing or modifying object properties.
+`privacy` mode can be enabled to prevent object properties from being accessed by an outside context.
 ```javascript
 var Greeter = Trope({ privacy: true }, function (name) {
     this.setName(name);
@@ -110,7 +111,7 @@ var greeter = Greeter.create('Bertrand');
 greeter.name; // undefined
 greeter.sayHello(); // 'Hello, Bertrand!'
 ```
-You can still expose properties on the public interface by using `exports`.
+Public properties can still be set in `privacy` mode by setting them on `this.exports`.
 ```javascript
 var Greeter = Trope({ privacy: true }, function (name) {
     this.setName(name);
@@ -140,7 +141,7 @@ var Animal = Trope({
     }
 });
 ```
-Inherit from base definitions by chaining off of them with `turn` and passing in a new definition. You can overload functions and call the parent with `this.super()`.
+Inherit from base definitions by chaining off of them with `turn`, or `proto`, or `extend` and passing in a new definition. Functions can be overloaded and the original can be called with `this.super()`.
 ```javascript
 var Vertebrate = Animal.turn({
     getLongName: function () {
@@ -157,7 +158,7 @@ var Mammal = Vertebrate.turn({
 var mammal = Mammal.create();
 mammal.getLongName(); // 'Animalia Chordata Mammalia'
 ```
-The `instanceof` operator still works since Trope inheritance is based on JavaScript's native inheritance patterns.
+The native `instanceof` operator works as expected since Trope inheritance is based on JavaScript's native inheritance mechanism.
 ```javascript
 mammal instanceof Mammal;
 mammal instanceof Vertebrate;
@@ -167,7 +168,7 @@ mammal instanceof Animal;
 See how [this.super](#description-super) is implemented in Trope.
 
 ##### Multiple Inheritance<a id="multiple-inheritance"></a>
-Assume existing definitions for `Logger` and `EventEmitter`.
+First we define two different Tropes `Logger` and `EventEmitter`.
 ```javascript
 var Logger = Trope({
     log: function (msg) {
@@ -194,7 +195,7 @@ var EventEmitter = Trope({
     }
 });
 ```
-Use `Logger` and `EventEmitter` to create `EventedLogger`, a composite Trope.
+Then we can create a composite Trope called `Eventedlogger`.
 ```javascript
 var EventedLogger = Trope(Logger).turn(EventEmitter);
 
@@ -205,7 +206,7 @@ eventedLogger.on('logme', function (msg) {
 eventedLogger.fire('logme', 'hello'); // logs 'LOGME: hello'
 eventedLogger.fire('logme', 'world'); // logs 'LOGME: world'
 ```
-Multiple inheritance can be a useful method of code reuse and can result in some interesting combinations of composite definitions.
+Multiple inheritance can be a useful method of code reuse and can result in some interesting combinations of composites.
 
 For example, define a `Cat`.
 ```javascript
@@ -247,7 +248,7 @@ Yes, defining a `LoggingEventedCat` is entirely possible in Trope, but it's up t
 See how [multiple inheritance](#description-multiple-inheritance) and [this.super](#description-super) are implemented in Trope.
 
 #### Native JS Compatibility<a id="native-js-compatibility"></a>
-Trope is completely compatibility with native JavaScript constructors because Trope uses native JavaScript inheritance patterns in its implementation. This makes it easy to adopt for projects without having to modify existing code to conform to Trope.
+Trope is completely compatibility with native JavaScript constructors because Trope uses native JavaScript inheritance in its implementation. This makes it easy to start using in current projects without having to modify an existing code base to start using it.
 ```javascript
 // Native JS constructor Shape
 function Shape (sides) {
@@ -261,12 +262,12 @@ var triangle = new Shape(3);
 triangle instanceof Shape; // true
 triangle.getSides(); // 3
 ```
-Create a Trope out of `Shape` and immediately create a `Shape` object. `instanceof` still works since `Shape.prototype` is actually part of `triangle`'s prototype chain.
+`Shape` can be wrapped with Trope and immediately treated as any other Trope to create a `Shape` object. `instanceof` still works since `Shape.prototype` is actually part of `triangle`'s prototype chain.
 ```javascript
 var triangle = Trope(Shape).create(3);
 triangle instanceof Shape; // true
 ```
-Representing `Shape` as a Trope allows it the same features available to any other Trope. Chain off of it and pass in a definition to add functionality or specify state.
+Wrapping `Shape` in a Trope gives it access to the same features available to any other Trope. Chain off of it to add new functionality or make it more specific.
 ```javascript
 var Quadrilateral = Trope(Shape).turn(function (opts) {
     this.sides = 4;
