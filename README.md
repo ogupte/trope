@@ -15,19 +15,114 @@ Trope provides a simplified interface to JavaScript's native inheritance model. 
 Trope takes a unique approach to implementing private state in objects. Most existing libraries and patterns use logic defined in a closure to prevent external access. Trope combines this with prototypes to maintain a private state with hidden properties on the created object.
 
 In most cases, objects follow use a prototype chain similar to the following where the only reference to the object is the the HEAD of the chain.
-```
+<style>
+.diagram {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.diagram .box-wrap {
+    font-size:.8em;
+    height: 6.2em;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+}
+.diagram .box-wrap .box {
+    border-radius:.4em;
+    border:1px solid black;
+    background-color: white;
+    font-family:monospace;
+    width: 8em;
+    height: 3em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.diagram .right-arrow {
+    align-self: flex-end;
+    font-size:1.6em;
+}
+.diagram .box-wrap .spacer {
+    width:100%;
+    height:1em;
+}
+.diagram .box-wrap.arrow .spacer {
+    width:100%;
+    height:1.8em;
+}
+.diagram .box-wrap .reference {
+    display:block;
+    font-size:2em;
+}
+.diagram .box-wrap .box.private {
+    font-weight: bold;
+    color: navy;
+}
+.diagram .box-wrap .box.public {
+    font-weight: bold;
+    color: green;
+}
+.diagram .box-wrap .box.prototype {
+    font-weight: bold;
+}
+.diagram .box-wrap .box.null {
+    border:1px dashed silver;
+    background-color: none;
+    color: silver;
+}
+@media screen and (max-width: 600px) {
+    .diagram {
+        font-size:.6em;
+    }
+    .diagram .box-wrap .spacer {
+        height:0em;
+    }
+    .diagram .box-wrap.arrow .spacer {
+        height:.2em;
+    }
+}
+@media screen and (max-width: 400px) {
+    .diagram .widescreen-only {
+        display:none;
+    }
+}
+</style>
+<div class="diagram">
+    <div class="box-wrap pointer"><span class="reference">&#x21e3;</span><div class="box public">{public}</div><div class="spacer"></div></div>
+    <div class="box-wrap arrow"><div class="right-arrow">&#x2192;</div><div class="spacer"></div></div>
+    <div class="box-wrap"><div class="box prototype">{prototype}</div><div class="spacer"></div></div>
+    <div class="box-wrap arrow"><div class="right-arrow">&#x2192;</div><div class="spacer"></div></div>
+    <div class="box-wrap"><div class="box object">{Object}</div><div class="spacer"></div></div>
+    <div class="box-wrap arrow"><div class="right-arrow">&#x2192;</div><div class="spacer"></div></div>
+    <div class="box-wrap"><div class="box null">null</div><div class="spacer"></div></div>
+</div>
+<!--```
    |
   \|/
    V
 {public} -> {proto} -> {object} -> null
-```
+```-->
+
 Trope creates another link in this chain (`{private}`) which can only be accessed by methods inside the definition and not by any outside references.
-```
+<div class="diagram">
+    <div class="box-wrap"><div class="box private">{private}</div><div class="spacer"></div></div>
+    <div class="box-wrap arrow"><div class="right-arrow">&#x2192;</div><div class="spacer"></div></div>
+    <div class="box-wrap pointer"><span class="reference">&#x21e3;</span><div class="box public">{public}</div><div class="spacer"></div></div>
+    <div class="box-wrap arrow"><div class="right-arrow">&#x2192;</div><div class="spacer"></div></div>
+    <div class="box-wrap"><div class="box prototype">{prototype}</div><div class="spacer"></div></div>
+    <div class="box-wrap arrow"><div class="right-arrow">&#x2192;</div><div class="spacer"></div></div>
+    <div class="box-wrap"><div class="box object">{Object}</div><div class="spacer"></div></div>
+    <div class="box-wrap arrow widescreen-only"><div class="right-arrow">&#x2192;</div><div class="spacer"></div></div>
+    <div class="box-wrap widescreen-only"><div class="box null">null</div><div class="spacer"></div></div>
+</div>
+<!--```
                 |
                \|/
                 V
 {private} -> {public} -> {proto} -> {object} -> null
-```
+```-->
 This creates an object which has real private members rather than just some private state on a separate object set within a closure. It also gives any inheriting definitions access to this private context, elevating these members to a *protected* status. [see example](#private-properties).
 
 ### Access to Super Methods<a id="description-super"></a>
