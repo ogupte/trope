@@ -1,8 +1,8 @@
 # trope.js
 ## Description
-Trope provides a simplified interface to JavaScript's native inheritance model. Prototypes are at the core of this library. Trope uses them to implement [private state](#private-properties), provide access to [super methods and constructors](#inheritance), and create composite objects with [multiple inheritance](#multiple-inheritance). It's also easy to start integrating with most projects since [native JS](#native-js-compatibility) constructors and object prototypes are fully [backward compatible](#native-js-compatibility) with Trope.
+Trope exposes a simple interface for JavaScript inheritance and provides some extra capabilities. Prototypes are at the core of this tool  where they are used to maintain [private state](#private-properties), access [super methods and constructors](#inheritance), and create  objects with [multiple inheritance](#multiple-inheritance). It's easy to start integrating with most projects since [native JS](#native-js-compatibility) constructors, object prototypes and ES6 classes are fully [compatible](#native-js-compatibility) with Trope.
 
-[See examples](#examples) for some ways Trope can be used.
+[See examples](#examples).
 
 ## Features
 * [Simplified object inheritance](#inheritance)
@@ -11,8 +11,14 @@ Trope provides a simplified interface to JavaScript's native inheritance model. 
 * [Multiple inheritance](#description-multiple-inheritance)
 * [Compatible with native JS](#native-js-compatibility)
 
+### Another OO Lib, seriously?
+I know OO libs are somewhat of a...well [trope](http://en.wiktionary.org/wiki/trope#Noun). The reason for that is because different people have different (strongly-held) beliefs about how object-oriented should work. This library tries not to take a stance on the various models that some might subscribe to about OO. The purpose is not to change your way of thinking, but to provide a tool that can make OO JavaScript a lot easier to code, review, and test.
+
+### But traits, classes, mixins, monads, gonads...
+Yes those are all great abstractions (except maybe gonads), and you should be using each of them where appropriate. Trope doesn't claim to follow the one true paradigm, but it does make it simple to quickly code up object factories that play nice with existing native JS constructors / ES6 classes, use inheritance, respect private members, call overloaded functions, and do multiple inheritance.
+
 ### Private object state<a id="description-private-members"></a>
-Trope takes a unique approach to implementing private state in objects. Most existing libraries and patterns use logic defined in a closure to prevent external access. Trope combines this with prototypes to maintain a private state with hidden properties on the created object.
+Trope takes a slightly unique approach to implementing private state in objects. Most existing libraries and patterns use logic defined in a closure to prevent external access. Trope combines this with prototypes to maintain a private state with hidden properties on the created object.
 
 In most cases, objects follow use a prototype chain similar to the following where the only reference to the object is the the HEAD of the chain.
 <style>
@@ -128,18 +134,18 @@ This creates an object which has real private members rather than just some priv
 ### Access to Super Methods<a id="description-super"></a>
 Accessing super methods in JS usually involves calls like `Super.prototype.methodName.call(this, arg1, ...)`. With Trope, `this.super()` is smart enough to know which function is the super method of the current context. This makes your code a lot easier to read and write when dealing with inheritance. It also allows the developer to create new links to the middle of inheritance chains without having to update references when calling super methods. [see example](#inheritance).
 
-If your Trope is inheriting from many different parents, you can call specific super methods with `this.super.as` allowing you to call masked functions of parents from anywhere in the inheritance chain. [see example](#multiple-inheritance).
+If your Trope is inheriting from many different parents, you can call their methods with `this.super.as` allowing you to call masked functions of parents from anywhere in the inheritance chain. [see example](#multiple-inheritance).
 
 ### Multiple Inheritance<a id="description-multiple-inheritance"></a>
 Multiple Inheritance is not a feature of the JavaScript language. This is a good thing! The single inheritance restriction eliminates a lot of the complexity involved with allowing object to inherit from multiple parents.
 
-Still, there is a strong desire to inherit from many disparate parents and the ways some people go about this can be damaging to a system and are often the source of new bugs. For instance, when using a mix-in function (or a for..in loop) there is information loss about the type of object being mixed in. When collisions occur, properties are overwritten, references are lost, and the prototype chain is dirtied. These issues could be overcome by feature detection or some other mechanism, but it's easier to embrace prototypes instead of pretending they don't exist.
+Still, there is a desire to inherit behavior from many different objects which might exist outside of the prototype chain. The various solutions include traits, mixins, the jquery or underscore `extend` functions, even the crude `for..in` loop. Common problems that occur with these approaches are information loss about the kind of object being inherited, lost references or errors when collisions occur, and prototype pollution. Some libraries have sophisticated techniques for overcoming these issues, but it's easier to embrace prototypes rather than fight them.
 
 Trope handles multiple inheritance by making sure the prototype chain remains clean. Overloaded methods can be accessed with `this.super.as`, private state can maintained or shared (protected), and any object's instanceof relationship (via `Trope.instanceOf`) can be determined.
 
-The implementation requires that dynamically created Tropes are generated on-the-fly so that we can use JavaScript's single inheritance paradigm to emulate a *multiple inheritance* definition.
+The implementation requires that dynamically generated Tropes are created upon definition so that we can use JavaScript's single inheritance restriction to emulate a *multiple inheritance* relationship.
 
-Refer to the [LoggingEventedCat](#LoggingEventedCat) example. In reality, the object `loggingEventedCat` does not inherit from `EventEmitter`. Instead it inherits from the dynamically created `[EventEmitter which inherits Logger]`. This allows for multiple parents to be normalized into a single, direct chain of parent Tropes. For this reason, using the native `instanceof` operator on objects created using multiple inheritance will not work, however the `Trope.instanceOf` function will determine the correct relationship.
+Refer to the [LoggingEventedCat](#LoggingEventedCat) example. The object `loggingEventedCat` does not inherit from `EventEmitter`. Rather it inherits from the dynamically created `[EventEmitter which inherits Logger]`. This allows for multiple parent chains to be normalized into a single, direct inheritance chain. But using dynamically generated definitions means that the native `instanceof` operator cannot be depended on for these kind of objects. However the `Trope.instanceOf` function will still determine the correct relationship.
 
 ### Examples<a id="examples"></a>
 * [Object factories](#object-factories)
