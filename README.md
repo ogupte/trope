@@ -123,7 +123,7 @@ Normally, objects will have a prototype chain similar to below where the only re
 {public} -> {proto} -> {object} -> null
 ```-->
 
-Trope creates another acting HEAD to this chain (`{private}`) which can only be accessed by methods inside the definition and not from any outside context.
+Trope creates another acting head to this chain (`{private}`) which can only be accessed by methods inside the definition and not from any outside context.
 <div class="diagram">
     <div class="box-wrap"><div class="box private">{private}</div><div class="spacer"></div></div>
     <div class="box-wrap arrow"><div class="right-arrow">&#x2192;</div><div class="spacer"></div></div>
@@ -144,20 +144,20 @@ Trope creates another acting HEAD to this chain (`{private}`) which can only be 
 The result is an object with real private members rather than just some private state on an object defined in a closure. It may also give inheriting definitions access to this private context, elevating these members to a *protected* status. [see example](#private-properties).
 
 ### Access to Super Methods<a id="description-super"></a>
-Calling super function in native JS usually involves code like `SuperName.prototype.methodName.call(this, arg1, ...)`. With Trope, `this.super()` is smart enough to know which function is the super method of the current executing context. This makes your code a lot easier to read and write. It also allows the developer to create new links to the middle of inheritance chains without having to modify references when calling super methods. [see example](#inheritance).
+Calling super functions in native JS usually involves code like `SuperName.prototype.methodName.call(this, arg1, ...)`. With Trope, `this.super()` is smart enough to know which is the correct super function of the currently executing context. This makes your code a lot easier to read and write. It also allows the developer to create new links to the middle of inheritance chains without having to modify references when calling super methods. [see example](#inheritance).
 
-When inheriting from many different parents, you can reference any of them with `this.super.as` allowing you to call masked functions of parents that are not direct parents. [see example](#multiple-inheritance).
+When inheriting from many different parents, you can reference any of them with `this.super.as` allowing you to call masked functions that are not members of the immediate parent. [see example](#multiple-inheritance).
 
 ### Multiple Inheritance<a id="description-multiple-inheritance"></a>
-Multiple Inheritance is not a feature of the JavaScript language, which is a good thing! The single inheritance restriction eliminates a lot of the complexity or ambiguity involved with allowing object to inherit from different unrelated parents. And a talented programmer could negate these issues by avoiding multiple inheritance altogether.
+Multiple Inheritance is not a feature of the JavaScript language, which is a good thing! The single inheritance restriction eliminates a lot of the complexity and ambiguity involved with allowing objects to inherit from various unrelated parents. Also multiple inheritance is not necessary, and a talented programmer could avoid these issues by not using multiple inheritance altogether.
 
-Still, there is sometimes a desire to inherit behavior from many different objects which might exist outside of the prototype chain. The solution to this problem in JavaScript often involves using traits, mixins, the jquery or underscore `extend` functions, or even the crude `for..in` loop to product an aggregate object. Problems that often occur with these approaches include information loss about the kind of object being inherited, lost references or errors when collisions occur, and prototype pollution. Some libraries have very sophisticated techniques for overcoming these issues, but I feel it's easier to embrace prototypes rather than fight them.
+Still, there is sometimes a desire to inherit behavior from various unrelated objects in certain cases. The solution to this problem in JavaScript often involves using traits, mixins, the jquery or underscore `extend` functions, or even the crude `for..in` loop to produce an aggregate object with a union of properties. Problems that often occur with these approaches include information loss about the kind of object being inherited, lost references/errors when collisions occur, and prototype chain pollution. Some libraries have very sophisticated techniques for overcoming these issues, but I feel it's easier to embrace prototypes rather than fight them.
 
-Trope handles multiple inheritance by making sure the prototype chain remains clean. Overloaded methods can be accessed with `this.super.as`, privacy is maintained, and the object's instanceof relationship can be determined with `Trope.instanceOf`.
+Trope handles multiple inheritance by ensuring the prototype chain remains clean. Overloaded methods can be accessed with `this.super.as`, privacy is maintained, and the object's instanceof relationship can be determined with `Trope.instanceOf`.
 
-The solution is to have dynamically generated Tropes created upon definition so that we can use JavaScript's *single* inheritance restriction to emulate a *multiple* inheritance relationship.
+The solution is to have dynamically generated Tropes created upon definition so that JavaScript's *single* inheritance restriction can be used to emulate a *multiple* inheritance relationship.
 
-Refer to the [LoggingEventedCat](#LoggingEventedCat) example. The object `loggingEventedCat` does not inherit from `EventEmitter`. Rather it inherits from the dynamically created `[EventEmitter which inherits Logger]`. This allows for multiple parent chains to be normalized into a single, direct inheritance chain. But using dynamically generated definitions means that the native `instanceof` operator cannot be depended on for these kind of objects. However the `Trope.instanceOf` function will still determine the correct relationship.
+Refer to the [LoggingEventedCat](#LoggingEventedCat) example. The object `loggingEventedCat` does not inherit from `EventEmitter`. Rather it inherits from the dynamically created `[EventEmitter which inherits Logger]`. This allows for multiple unrelated parent chains to be normalized into a single, direct inheritance chain. Using these dynamically generated definitions means that the native `instanceof` operator cannot be depended on for these kind of objects. However, the `Trope.instanceOf` function is available and will still determine the correct relationship.
 
 ### Examples<a id="examples"></a>
 * [Object factories](#object-factories)
