@@ -281,7 +281,7 @@ mammal instanceof Animal;
 See how [this.super](#description-super) is implemented in Trope.
 
 ##### Multiple Inheritance<a id="multiple-inheritance"></a>
-First we define two different Tropes `Logger` and `EventEmitter`.
+First we define two unrelated Tropes `Logger` and `EventEmitter`.
 ```javascript
 var Logger = Trope({
     log: function (msg) {
@@ -308,7 +308,7 @@ var EventEmitter = Trope({
     }
 });
 ```
-Then we can create a composite Trope called `Eventedlogger`.
+They can be combined to create a new Trope `Eventedlogger`.
 ```javascript
 var EventedLogger = Trope(Logger).turn(EventEmitter);
 
@@ -319,9 +319,9 @@ eventedLogger.on('logme', function (msg) {
 eventedLogger.fire('logme', 'hello'); // logs 'LOGME: hello'
 eventedLogger.fire('logme', 'world'); // logs 'LOGME: world'
 ```
-Multiple inheritance can be a useful method of code reuse and can result in some interesting combinations of composites.
+Multiple inheritance can often result in some interesting combinations.
 
-For example, define a `Cat`.
+For example, define a simple `Cat`.
 ```javascript
 // Define a `Cat`
 var Cat = Trope(function (name) { // init function
@@ -335,7 +335,7 @@ var Cat = Trope(function (name) { // init function
 var cat = Cat.create('Raja');
 cat.vocalize(); // 'Meow!'
 ```
-<a id="LoggingEventedCat"></a>Inherit from `Logger`, `EventEmitter`, and `Cat` to define something completely different.
+<a id="LoggingEventedCat"></a>Now inherit from `Logger`, `EventEmitter`, and `Cat` while passing in a new definitiong to create something completely different.
 ```javascript
 var LoggingEventedCat = Trope(Logger).
     turn(EventEmitter).
@@ -356,12 +356,12 @@ var loggingEventedCat = LoggingEventedCat.create('Raja');
 loggingEventedCat.vocalize(); // logs 'Raja: Meow!'
 loggingEventedCat.vocalize('Purr...'); // logs 'Raja: Purr...'
 ```
-Yes, defining a `LoggingEventedCat` is entirely possible in Trope, but it's up to you to decide how useful these composites can be.
+Yes, defining a `LoggingEventedCat` is entirely possible in Trope, however the usefulness of these composites is at the discretion of the developer.
 
 See how [multiple inheritance](#description-multiple-inheritance) and [this.super](#description-super) are implemented in Trope.
 
 #### Native JS Compatibility<a id="native-js-compatibility"></a>
-Trope is completely compatibility with native JavaScript constructors because Trope uses native JavaScript inheritance in its implementation. This makes it easy to start using in current projects without having to modify an existing code base to start using it.
+Trope is completely compatibile with native JS because JavaScript constructors are valid Trope definitions! This makes it easy to start using it without having to modify an existing code base.
 ```javascript
 // Native JS constructor Shape
 function Shape (sides) {
@@ -375,7 +375,7 @@ var triangle = new Shape(3);
 triangle instanceof Shape; // true
 triangle.getSides(); // 3
 ```
-`Shape` can be wrapped with Trope and immediately treated as any other Trope to create a `Shape` object. `instanceof` still works since `Shape.prototype` is actually part of `triangle`'s prototype chain.
+`Shape` can be wrapped with Trope and immediately treated as any other Trope to create a `Shape` object. `instanceof` still works since `Shape.prototype` is part of `triangle`'s prototype chain.
 ```javascript
 var triangle = Trope(Shape).create(3);
 triangle instanceof Shape; // true
