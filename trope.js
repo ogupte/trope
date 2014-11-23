@@ -194,7 +194,6 @@ var Trope = (function () {
 	};
 
 	var EXEC_METHOD = 0x3200;
-	var EXEC_SUPER = 0x3100;
 	var EXEC_CONSTRUCTOR = 0x3000;
 	function ExecutionContext (self, trope, pubCtx, privateCtx, targetCtx, executionStack) {
 		self.trope = ensureIsATrope(trope);
@@ -238,9 +237,6 @@ var Trope = (function () {
 				self.executionStack.push(self.as(trope), EXEC_METHOD, {methodName: name, superMethod: superMethod, superTrope: superTrope});
 				returnValue = method.apply(ctx, args);
 				self.executionStack.pop();
-				// var returnValue = self.callAsMethod(name, function (ctx) {
-				// 	return method.apply(ctx, args);
-				// });
 				return returnValue;
 			};
 			self.pubCtx[name].trope = trope;
@@ -261,17 +257,6 @@ var Trope = (function () {
 			this.executionStack.pop();
 			return returnValue;
 		},
-		// callAsSuper: function (func) {
-		// 	var ctx;
-		// 	if (this.trope.isPrivate) {
-		// 		ctx = this.privateCtx;
-		// 	} else {
-		// 		ctx = this.pubCtx;
-		// 	}
-		// 	this.executionStack.push(this, EXEC_SUPER);
-		// 	func(ctx);
-		// 	this.executionStack.pop();
-		// },
 		callAsConstructor: function (func) {
 			var ctx;
 			if (this.trope.isPrivate) {
@@ -283,47 +268,14 @@ var Trope = (function () {
 			func(ctx);
 			this.executionStack.pop();
 		},
-		_getSuperFunction: function () {
-			var current = this.executionStack.peek();
-			var execCtx;
-			var execType;
-			var execData;
-			if (current) {
-				execCtx = current.executionContext;
-				execType = current.type;
-				execData = current.data;
-			} else {
-				return undefined;
-			}
-			if (execCtx.trope.inherits) {
-				if (execType === EXEC_CONSTRUCTOR) {
-					return this.as(execCtx.trope.inherits).getConstructor();
-				} else if (execType === EXEC_METHOD) {
-					return execData.superMethod;
-					// return this.as(execCtx.trope.inherits).getMethod(current.methodName);
-					// return this.as(execData.superTrope).getMethod(execData.methodName);
-					// throw new Error('THIS SHOULD NOT HAPPEN');
-				}
-			} else {
-				return undefined;
-			}
-			// var self = this;
-			// var args = arguments;
-			// var newArgs = [args].concat(args);
-			// return function () {
-			// 	self.callAsSuper(function (ctx) {
-			// 		self.trope.superConstr.apply(ctx, newArgs);
-			// 	});
-			// };
-		},
 		getSuperFunction: function () {
 			if (this.trope.inherits) {
-				return this.as(this.trope.inherits).getXFunction();
+				return this.as(this.trope.inherits).getContextualFunction();
 			} else {
 				return undefined;
 			}
 		},
-		getXFunction: function () {
+		getContextualFunction: function () {
 			var current = this.executionStack.peek();
 			var execCtx;
 			var execType;
@@ -357,22 +309,6 @@ var Trope = (function () {
 		// 		this.executionStack.pop();
 		// 	};
 		// },
-		_getConstructor: function () {
-			var self = this;
-			var _constr = self.trope.createProxyConstructor(true);
-			return function () {
-				var args = arguments;
-				var newArgs = [self];
-				var i;
-				for (i=0; i<args.length; i++) {
-					newArgs.push(args[i]);
-				}
-				self.executionStack.push(self, EXEC_CONSTRUCTOR);
-				_constr.apply(null, newArgs);
-				self.executionStack.pop();
-			};
-			// return this.trope.createProxyConstructor(true);
-		},
 		getConstructor: function () {
 			var self = this;
 			return function () {
@@ -428,7 +364,7 @@ var Trope = (function () {
 			}
 		}());
 
-		// trope.inherits is always a Trope object or null
+		// trope.inherits always a Trope object or null
 		trope.inherits = (function () {
 			if (def.inherits) {
 				if (def.inherits instanceof Trope) {
@@ -532,37 +468,21 @@ var Trope = (function () {
 				return constr;
 			}(trope.createProxyConstructor(isSuper)));
 		},
-		createProxyConstructor: function (isSuper) {
+		createProxyConstructor: function (isSuper) {//TODO isSuper isn't really used anymore
 			var trope = this;
 
 			// return a proxy constructor function
-			return function (executionContext) {
+			return function (executionContext) {//TODO executionContext isn't used anymore
 				var args = arguments;
-				// var memoArgs = arguments;
 				var pubCtx = this;
 				var privateCtx;
 				var targetCtx = pubCtx;
 				if (pubCtx === globalCtx) {
 					// was not called with the `new` operator
 					pubCtx = Object.create(trope.finalProto);
-					// targetCtx = pubCtx;
 				}
 				privateCtx = Object.create(pubCtx);
 				privateCtx.exports = pubCtx;
-				// function getPrivateCtx () {
-				// 	// if (isSuper) {
-				// 	// 	return memoArgs[1];
-				// 	// }
-				// 	if (!privateCtx) {
-				// 		privateCtx = Object.create(pubCtx);
-				// 		privateCtx.exports = pubCtx;
-				// 	}
-				// 	return privateCtx;
-				// }
-				// if (trope.isPrivate) {
-				// 	targetCtx = getPrivateCtx();
-				// }
-				// var superStack;
 
 				if (!isSuper) {
 					executionContext = ExecutionContext.create(trope, pubCtx, privateCtx, targetCtx);
@@ -582,111 +502,17 @@ var Trope = (function () {
 								var superFunction = function () {
 									new Error('No Super Function Found.');
 								};
-								// if (executionContext.hasSuper()) {
 								if (trope.inherits) {
-									// superFunction = executionContext.as(trope.inherits).getSuperFunction();
 									superFunction = executionContext.executionStack.peek().executionContext.getSuperFunction();
-									// superFunction = executionContext.as(trope.inherits).getConstructor();
 								}
 								if (superFunction) {
 									superFunction.as = function (_trope) {
-										return executionContext.as(_trope).getXFunction();
-										// return executionContext.as(_trope).getConstructor();
+										return executionContext.as(_trope).getContextualFunction();
 									};
 								}
 								return superFunction;
 							}
 						});
-						/*Object.defineProperty(pubCtx, 'super', {
-							enumerable: false,
-							get: function () {
-								var topOfStack = superStack.peek();
-								var targetCtx = pubCtx;
-								if (!topOfStack) {
-									return undefined;
-								} else {
-									if (!topOfStack.func) {
-										return undefined;
-									}
-									if (topOfStack.trope && topOfStack.trope.isPrivate) {
-										targetCtx = getPrivateCtx();
-									}
-									if (topOfStack.isConstructor) {
-										var superConstr = function () {
-											var args = arguments;
-											var i;
-											var newArgs = [superStack, getPrivateCtx()];
-											for (i=0; i<args.length; i++) {
-												newArgs.push(args[i]);
-											}
-											topOfStack.func.apply(targetCtx, newArgs);
-										};
-
-										superConstr.as = function (_trope) {
-											if (!(_trope instanceof Trope)) {
-												if (typeof _trope === FUNCTION) {
-													if (_trope.trope) {
-														_trope = _trope.trope;
-													} else {
-														// _trope = getAsTrope(_trope);
-														_trope = new Trope({
-															constructor: _trope,
-															prototype: _trope.prototype,
-															useSuper: false
-														});
-													}
-												}
-											}
-											var _superConstr = _trope.createProxyConstructor(true);
-											return function () {
-												var i;
-												var args = [superStack, getPrivateCtx()];
-												for (i=0; i<arguments.length; i++) {
-													args.push(arguments[i]);
-												}
-												_superConstr.apply(pubCtx, args);
-											};
-										};
-										return superConstr;
-									} else {
-										var superFunc = function () {
-											var returnValue;
-											if (topOfStack.trope.inherits) {
-												superStack.push({ func: topOfStack.trope.inherits.finalProto[topOfStack.methodName], trope: topOfStack.trope.inherits, isMethod: true, methodName: topOfStack.methodName });
-											} else {
-												superStack.push({ func: null, trope: null, isMethod: true, methodName: topOfStack.methodName });
-											}
-											returnValue = topOfStack.func.apply(targetCtx, arguments);
-											superStack.pop();
-											return returnValue;
-										};
-										var superFuncName = topOfStack.methodName;
-										superFunc.as = function (_trope) {
-											if (!(_trope instanceof Trope) && typeof _trope === FUNCTION && _trope.trope) {
-												_trope = _trope.trope;
-											}
-											if (_trope.isPrivate) {
-												targetCtx = getPrivateCtx();
-											} else {
-												targetCtx = pubCtx;
-											}
-											return function () {
-												var returnValue;
-												if (_trope.inherits) {
-													superStack.push({ func: _trope.inherits.finalProto[superFuncName], trope: _trope.inherits, isMethod: true, methodName: superFuncName });
-												} else {
-													superStack.push({ func: null, trope: null, isMethod: true, methodName: superFuncName });
-												}
-												returnValue = _trope.finalProto[superFuncName].apply(targetCtx, arguments);
-												superStack.pop();
-												return returnValue;
-											};
-										};
-										return superFunc;
-									}
-								}
-							}
-						});*/
 					}
 				}
 
@@ -694,108 +520,32 @@ var Trope = (function () {
 					trope.forEachTropeInChain(function (currentTrope) {
 						currentTrope.forEachMethod(function (method, methodName) {
 							executionContext.addMethod(methodName, method, currentTrope);
-							// var superMethod;
-							// if (pubCtx.hasOwnProperty && pubCtx.hasOwnProperty(methodName)) {
-							// 	superMethod = pubCtx[methodName];
-							// }
-							// pubCtx[methodName] = function () {
-							// 	var args = arguments;
-							// 	var returnValue;
-							// 	superStack.push({ func: superMethod, trope: currentTrope, isMethod: true, methodName: methodName });
-							// 	if (currentTrope.isPrivate) {
-							// 		returnValue = method.apply(getPrivateCtx(), args);
-							// 	} else {
-							// 		returnValue = method.apply(pubCtx, args);
-							// 	}
-							// 	superStack.pop();
-							// 	return returnValue;
-							// };
 						});
 					});
 				}
-				/*if (!isSuper) {
-					superStack = {
-						stack: [],
-						peek: function () {
-							return this.stack[this.stack.length-1];
-						},
-						push: function (value) {
-							return this.stack.push(value);
-						},
-						pop: function () {
-							return this.stack.pop();
-						}
-					};
-
-					// iterate over each method in the prototype chain to push super methods on the stack if necessary
-					trope.forEachTropeInChain(function (currentTrope) {
-						currentTrope.forEachMethod(function (method, methodName) {
-							var superMethod;
-								if (pubCtx.hasOwnProperty && pubCtx.hasOwnProperty(methodName)) {
-									superMethod = pubCtx[methodName];
-								}
-								pubCtx[methodName] = function () {
-									var args = arguments;
-									var returnValue;
-									superStack.push({ func: superMethod, trope: currentTrope, isMethod: true, methodName: methodName });
-									if (currentTrope.isPrivate) {
-										returnValue = method.apply(getPrivateCtx(), args);
-									} else {
-										returnValue = method.apply(pubCtx, args);
-									}
-									superStack.pop();
-									return returnValue;
-								};
-						});
-					});
-				} else {
-					var i;
-					superStack = args[0];
-					var newArgs = [];
-					for (i=2; i<args.length; i++) {
-						newArgs.push(args[i]);
-					}
-					args = newArgs;
-				}*/
 
 				if (!isSuper && trope.instanceContructor) {
 					setNonEnumerableProperty(pubCtx, CONSTRUCTOR, trope.instanceContructor);
 				}
-				// superStack.push({ func: trope.superConstr, trope: trope.inherits, isConstructor: true });
 				if (!isSuper) {
 					trope.autoInitializeConfigs.forEach(function (autoinitConfig) {
 						var autoinitTrope = autoinitConfig.trope;
 						if (autoinitConfig.mode === AUTOINIT_CONSTRUCTOR) {
-							// pubCtx.super.as(autoinitTrope).apply(null, args);
-							// executionContext.getSuperFunctionAs(autoinitTrope).apply(null, args);
 							executionContext.as(autoinitTrope).getConstructor().apply(null, args);
 
 						} else if (autoinitConfig.mode === AUTOINIT_ARGS) {
-							// pubCtx.super.as(autoinitTrope).apply(null, autoinitConfig.args);
-							// executionContext.getSuperFunctionAs(autoinitTrope).apply(null, autoinitConfig.args);
 							executionContext.as(autoinitTrope).getConstructor().apply(null, autoinitConfig.args);
 						} else if (autoinitConfig.mode === AUTOINIT_INIT_FUNC) {
-							// executionContext.getSuperFunctionAs(autoinitTrope).apply(null, autoinitConfig.args);
 							executionContext.as(autoinitTrope).callAsConstructor(function (ctx) {
 								autoinitConfig.initFunc.apply(ctx, args);
 							});
-							/*superStack.push({ func: autoinitTrope.superConstr, trope: autoinitTrope.inherits, isConstructor: true });
-							if (autoinitTrope.isPrivate) {
-								autoinitConfig.initFunc.apply(getPrivateCtx(), args);
-							} else {
-								autoinitConfig.initFunc.apply(pubCtx, args);
-							}
-							superStack.pop();*/
 						}
 					});
 				}
 				executionContext.callAsConstructor(function (ctx) {
 					trope.constr.apply(ctx, args);
 				});
-				// trope.constr.apply(targetCtx, args);
-				// superStack.pop();
 				return executionContext.getPublicContext();
-				// return pubCtx;
 			};
 		},
 		getPrototype: function () {
