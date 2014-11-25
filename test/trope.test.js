@@ -155,7 +155,7 @@ describe('Trope Instance', function () {
 			expect(TropeConstructor.trope).to.equal(trope);
 		});
 	});
-	describe('#createProxyConstructor([isSuper])', function () {
+	xdescribe('#createProxyConstructor([isSuper])', function () {
 		it('should return a proxy constructor function', function () {
 			var TropeProxyConstructor = trope.createProxyConstructor();
 			expect(TropeProxyConstructor).to.be.a.function;

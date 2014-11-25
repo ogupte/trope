@@ -1,4 +1,4 @@
-((function (namespace, moduleDefinition) {
+((function (namespace, moduleDefinition, DEFINITION_CONTEXT) {
 	'use strict';
 	var MODULE;
 	var EXPORTS;
@@ -13,7 +13,7 @@
 		MODULE = module;
 		EXPORTS = module.exports;
 	}
-	var moduleDefinitionReturns = moduleDefinition(MODULE, EXPORTS);
+	var moduleDefinitionReturns = moduleDefinition(MODULE, EXPORTS, DEFINITION_CONTEXT);
 	if (moduleDefinitionReturns) {
 		MODULE.exports = moduleDefinitionReturns;
 	}
@@ -21,7 +21,7 @@
 		window[namespace] = MODULE.exports;
 	}
 	return moduleDefinitionReturns;
-})('Trope', function (module, exports) {
+})('Trope', function (module, exports, CONTEXT) {
 //START trope.js
 'use strict';
 
@@ -113,7 +113,7 @@ function applyAliases(object, aliases, target) {
 
 */
 var Trope = (function () {
-	var globalCtx = this;
+	var globalCtx = CONTEXT;
 	var exports = Define;
 	var OBJECT = 'object';
 	var FUNCTION = 'function';
@@ -244,6 +244,9 @@ var Trope = (function () {
 		getPublicContext: function () {
 			return this.pubCtx;
 		},
+		getPrivateContext: function () {
+			return this.privateCtx;
+		},
 		callAsMethod: function (name, func) {
 			var ctx;
 			var returnValue;
@@ -354,7 +357,11 @@ var Trope = (function () {
 
 		trope.constr = (function () {
 			if (def.hasOwnProperty(CONSTRUCTOR)) {
-				return def.constructor;
+				if (def.constructor.trope) {
+					return def.constructor.trope.constr;
+				} else {
+					return def.constructor;
+				}
 			} else if (trope.proto.hasOwnProperty && trope.proto.hasOwnProperty(CONSTRUCTOR)) {
 				return trope.proto.constructor;
 			} else if (trope.proto instanceof Object) {
@@ -430,7 +437,7 @@ var Trope = (function () {
 			return false; //defaults to false
 		}());
 
-		trope.superConstr = trope.getSuperConstructor();
+		// trope.superConstr = trope.getSuperConstructor();
 
 		trope.autoInitializeConfigs = [];
 		trope.forEachTropeInChain(function (currentTrope) {
@@ -460,15 +467,79 @@ var Trope = (function () {
 				constr.prototype = trope.finalProto;
 				constr.trope = trope;
 				constr.create = function create () {
-					var instance = Object.create(constr.prototype);
-					constr.apply(instance, arguments);
-					return instance;
+					return constr.apply(null, arguments);
 				};
 				applyAliases(constr, DEFINE_ALIAS, trope.extend.bind(trope));
 				return constr;
-			}(trope.createProxyConstructor(isSuper)));
+			}(trope.buildProxyConstructor()));
 		},
-		createProxyConstructor: function (isSuper) {//TODO isSuper isn't really used anymore
+		buildProxyConstructor: function (_executionContext) {
+			var trope = this;
+			// return a proxy constructor function
+			return function () {
+				var executionContext = _executionContext;
+				var args = arguments;
+				var pubCtx = Object.create(trope.finalProto);
+				var privateCtx;
+				if (executionContext) {
+					privateCtx = executionContext.getPrivateContext();
+					pubCtx = executionContext.getPublicContext();
+				} else {
+					privateCtx = Object.create(pubCtx);
+					privateCtx.exports = pubCtx;
+					executionContext = ExecutionContext.create(trope, pubCtx, privateCtx);
+				}
+				if (trope.useSuper) {
+					if (pubCtx.hasOwnProperty && !pubCtx.hasOwnProperty('super')) {
+						Object.defineProperty(pubCtx, 'super', {
+							enumerable: false,
+							get: function () {
+								var superFunction = function () {
+									new Error('No Super Function Found.');
+								};
+								if (trope.inherits) {
+									superFunction = executionContext.executionStack.peek().executionContext.getSuperFunction();
+								}
+								if (superFunction) {
+									superFunction.as = function (_trope) {
+										return executionContext.as(_trope).getContextualFunction();
+									};
+								}
+								return superFunction;
+							}
+						});
+					}
+				}
+
+				trope.forEachTropeInChain(function (currentTrope) {
+					currentTrope.forEachMethod(function (method, methodName) {
+						executionContext.addMethod(methodName, method, currentTrope);
+					});
+				});
+
+				if (trope.instanceContructor) {
+					setNonEnumerableProperty(pubCtx, CONSTRUCTOR, trope.instanceContructor);
+				}
+				trope.autoInitializeConfigs.forEach(function (autoinitConfig) {
+					var autoinitTrope = autoinitConfig.trope;
+					if (autoinitConfig.mode === AUTOINIT_CONSTRUCTOR) {
+						executionContext.as(autoinitTrope).getConstructor().apply(null, args);
+
+					} else if (autoinitConfig.mode === AUTOINIT_ARGS) {
+						executionContext.as(autoinitTrope).getConstructor().apply(null, autoinitConfig.args);
+					} else if (autoinitConfig.mode === AUTOINIT_INIT_FUNC) {
+						executionContext.as(autoinitTrope).callAsConstructor(function (ctx) {
+							autoinitConfig.initFunc.apply(ctx, args);
+						});
+					}
+				});
+				executionContext.callAsConstructor(function (ctx) {
+					trope.constr.apply(ctx, args);
+				});
+				return pubCtx;
+			};
+		},
+		_createProxyConstructor: function (isSuper) {//TODO isSuper isn't really used anymore
 			var trope = this;
 
 			// return a proxy constructor function
@@ -793,4 +864,4 @@ var Trope = (function () {
 
 module.exports = Trope;
 //END trope.js
-}));
+}, this));
