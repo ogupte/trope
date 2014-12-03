@@ -195,6 +195,7 @@ var Trope = (function () {
 
 	var EXEC_METHOD = 0x3200;
 	var EXEC_CONSTRUCTOR = 0x3000;
+	var EXEC_FUNCTION = 0x3300;
 	function ExecutionContext (self, trope, pubCtx, privateCtx, executionStack) {
 		self.trope = ensureIsATrope(trope);
 		self.pubCtx = pubCtx || Object.create(self.trope.finalProto);
@@ -202,6 +203,7 @@ var Trope = (function () {
 		if (!self.privateCtx.exports) {
 			self.privateCtx.exports = self.pubCtx;
 		}
+		self.targetCtx = self.getTargetContext();
 		self.executionStack = executionStack || ExecutionStack.create();
 		return self;
 	}
@@ -229,15 +231,9 @@ var Trope = (function () {
 
 			self.pubCtx[name] = function () {
 				var args = arguments;
-				var ctx;
-				var returnValue;
-				if (trope.isPrivate) {
-					ctx = self.privateCtx;
-				} else {
-					ctx = self.pubCtx;
-				}
-				self.executionStack.push(self.as(trope), EXEC_METHOD, {methodName: name, superMethod: superMethod, superTrope: superTrope});
-				returnValue = method.apply(ctx, args);
+				var executionContext = self.as(trope);
+				self.executionStack.push(executionContext, EXEC_METHOD, {methodName: name, superMethod: superMethod, superTrope: superTrope});
+				var returnValue = method.apply(executionContext.getTargetContext(), args);
 				self.executionStack.pop();
 				return returnValue;
 			};
@@ -249,36 +245,59 @@ var Trope = (function () {
 		getPrivateContext: function () {
 			return this.privateCtx;
 		},
-		callAsMethod: function (name, func) {
+		getTargetContext: function () {
 			var ctx;
-			var returnValue;
 			if (this.trope.isPrivate) {
 				ctx = this.privateCtx;
 			} else {
 				ctx = this.pubCtx;
 			}
-			this.executionStack.push(this, EXEC_METHOD);
-			returnValue = func(ctx);
+			return ctx;
+		},
+		callWithContext: function (executionMode, func, targetCtx) {
+			this.executionStack.push(this, executionMode);
+			var returnValue = func(targetCtx);
 			this.executionStack.pop();
 			return returnValue;
 		},
-		callAsConstructor: function (func) {
-			var ctx;
-			if (this.trope.isPrivate) {
-				ctx = this.privateCtx;
-			} else {
-				ctx = this.pubCtx;
-			}
-			this.executionStack.push(this, EXEC_CONSTRUCTOR);
-			func(ctx);
-			this.executionStack.pop();
+		callAsMethod: function (name, func) {
+			return this.callWithContext(EXEC_METHOD, func, this.targetCtx);
 		},
-		getSuperFunction: function () {
+		getAsMemberFunction: function (func, isPrivate) {
+			var self = this;
+			var targetCtx = self.targetCtx;
+			if (isPrivate === false) {
+				targetCtx = self.pubCtx;
+			} else if (isPrivate === true) {
+				targetCtx = self.privateCtx;
+			}
+			return function () {
+				var args = arguments;
+				var returnValue;
+				self.callWithContext(EXEC_FUNCTION, function (ctx) {
+					returnValue = func.apply(ctx, args);
+				}, targetCtx);
+				return returnValue;
+			};
+		},
+		getAsPublicFunction: function (func) {
+			return this.getAsMemberFunction(func, false);
+		},
+		getAsPrivateFunction: function (func) {
+			return this.getAsMemberFunction(func, true);
+		},
+		callAsConstructor: function (func) {
+			return this.callWithContext(EXEC_CONSTRUCTOR, func, this.targetCtx);
+		},
+		getParentContextualFunction: function () {
 			if (this.trope.inherits) {
 				return this.as(this.trope.inherits).getContextualFunction();
 			} else {
 				return undefined;
 			}
+		},
+		getSuperFunction: function () {
+			return this.executionStack.peek().executionContext.getParentContextualFunction();
 		},
 		getContextualFunction: function () {
 			var current = this.executionStack.peek();
@@ -297,23 +316,10 @@ var Trope = (function () {
 				return this.getConstructor();
 			} else if (execType === EXEC_METHOD) {
 				return execData.superMethod;
+			} else {
+				return undefined;
 			}
 		},
-		// getMethod: function (name) {
-		// 	var self = this;
-		// 	var _method = this.trope
-		// 	return function () {
-		// 		var args = arguments;
-		// 		var newArgs = [self];
-		// 		var i;
-		// 		for (i=0; i<args.length; i++) {
-		// 			newArgs.push(args[i]);
-		// 		}
-		// 		this.executionStack.push(this, EXEC_METHOD);
-		// 		_method.apply(null, newArgs);
-		// 		this.executionStack.pop();
-		// 	};
-		// },
 		getConstructor: function () {
 			var self = this;
 			return function () {
@@ -492,7 +498,7 @@ var Trope = (function () {
 									new Error('No Super Function Found.');
 								};
 								if (trope.inherits) {
-									superFunction = executionContext.executionStack.peek().executionContext.getSuperFunction();
+									superFunction = executionContext.getSuperFunction();
 								}
 								if (superFunction) {
 									superFunction.as = function (_trope) {
@@ -518,7 +524,6 @@ var Trope = (function () {
 					var autoinitTrope = autoinitConfig.trope;
 					if (autoinitConfig.mode === AUTOINIT_CONSTRUCTOR) {
 						executionContext.as(autoinitTrope).getConstructor().apply(null, args);
-
 					} else if (autoinitConfig.mode === AUTOINIT_ARGS) {
 						executionContext.as(autoinitTrope).getConstructor().apply(null, autoinitConfig.args);
 					} else if (autoinitConfig.mode === AUTOINIT_INIT_FUNC) {
