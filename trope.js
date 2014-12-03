@@ -195,20 +195,22 @@ var Trope = (function () {
 
 	var EXEC_METHOD = 0x3200;
 	var EXEC_CONSTRUCTOR = 0x3000;
-	function ExecutionContext (self, trope, pubCtx, privateCtx, targetCtx, executionStack) {
+	function ExecutionContext (self, trope, pubCtx, privateCtx, executionStack) {
 		self.trope = ensureIsATrope(trope);
-		self.pubCtx = pubCtx;
-		self.privateCtx = privateCtx;
-		self.targetCtx = targetCtx;
+		self.pubCtx = pubCtx || Object.create(self.trope.finalProto);
+		self.privateCtx = privateCtx || Object.create(self.pubCtx);
+		if (!self.privateCtx.exports) {
+			self.privateCtx.exports = self.pubCtx;
+		}
 		self.executionStack = executionStack || ExecutionStack.create();
 		return self;
 	}
-	ExecutionContext.create = function (trope, pubCtx, privateCtx, targetCtx, executionStack) {
-		return ExecutionContext(Object.create(ExecutionContext.prototype), trope, pubCtx, privateCtx, targetCtx, executionStack);
+	ExecutionContext.create = function (trope, pubCtx, privateCtx, executionStack) {
+		return ExecutionContext(Object.create(ExecutionContext.prototype), trope, pubCtx, privateCtx, executionStack);
 	};
 	ExecutionContext.prototype = {
 		as: function (trope) {
-			return ExecutionContext.create(trope, this.pubCtx, this.privateCtx, this.targetCtx, this.executionStack);
+			return ExecutionContext.create(trope, this.pubCtx, this.privateCtx, this.executionStack);
 		},
 		hasSuper: function () {
 			if (this.trope.superConstr) {
@@ -473,22 +475,14 @@ var Trope = (function () {
 				return constr;
 			}(trope.buildProxyConstructor()));
 		},
-		buildProxyConstructor: function (_executionContext) {
+		buildProxyConstructor: function () {
 			var trope = this;
 			// return a proxy constructor function
 			return function () {
-				var executionContext = _executionContext;
 				var args = arguments;
-				var pubCtx = Object.create(trope.finalProto);
-				var privateCtx;
-				if (executionContext) {
-					privateCtx = executionContext.getPrivateContext();
-					pubCtx = executionContext.getPublicContext();
-				} else {
-					privateCtx = Object.create(pubCtx);
-					privateCtx.exports = pubCtx;
-					executionContext = ExecutionContext.create(trope, pubCtx, privateCtx);
-				}
+				var executionContext = ExecutionContext.create(trope);
+				var pubCtx = executionContext.getPublicContext();
+				var privateCtx = executionContext.getPrivateContext();
 				if (trope.useSuper) {
 					if (pubCtx.hasOwnProperty && !pubCtx.hasOwnProperty('super')) {
 						Object.defineProperty(pubCtx, 'super', {
@@ -537,86 +531,6 @@ var Trope = (function () {
 					trope.constr.apply(ctx, args);
 				});
 				return pubCtx;
-			};
-		},
-		_createProxyConstructor: function (isSuper) {//TODO isSuper isn't really used anymore
-			var trope = this;
-
-			// return a proxy constructor function
-			return function (executionContext) {//TODO executionContext isn't used anymore
-				var args = arguments;
-				var pubCtx = this;
-				var privateCtx;
-				var targetCtx = pubCtx;
-				if (pubCtx === globalCtx) {
-					// was not called with the `new` operator
-					pubCtx = Object.create(trope.finalProto);
-				}
-				privateCtx = Object.create(pubCtx);
-				privateCtx.exports = pubCtx;
-
-				if (!isSuper) {
-					executionContext = ExecutionContext.create(trope, pubCtx, privateCtx, targetCtx);
-				} else {
-					executionContext = args[0].as(trope);
-					var newArgs = [];
-					for (var i=1; i<args.length; i++) {
-						newArgs.push(args[i]);
-					}
-					args = newArgs;
-				}
-				if (trope.useSuper && !isSuper) {
-					if (pubCtx.hasOwnProperty && !pubCtx.hasOwnProperty('super')) {
-						Object.defineProperty(pubCtx, 'super', {
-							enumerable: false,
-							get: function () {
-								var superFunction = function () {
-									new Error('No Super Function Found.');
-								};
-								if (trope.inherits) {
-									superFunction = executionContext.executionStack.peek().executionContext.getSuperFunction();
-								}
-								if (superFunction) {
-									superFunction.as = function (_trope) {
-										return executionContext.as(_trope).getContextualFunction();
-									};
-								}
-								return superFunction;
-							}
-						});
-					}
-				}
-
-				if (!isSuper) {
-					trope.forEachTropeInChain(function (currentTrope) {
-						currentTrope.forEachMethod(function (method, methodName) {
-							executionContext.addMethod(methodName, method, currentTrope);
-						});
-					});
-				}
-
-				if (!isSuper && trope.instanceContructor) {
-					setNonEnumerableProperty(pubCtx, CONSTRUCTOR, trope.instanceContructor);
-				}
-				if (!isSuper) {
-					trope.autoInitializeConfigs.forEach(function (autoinitConfig) {
-						var autoinitTrope = autoinitConfig.trope;
-						if (autoinitConfig.mode === AUTOINIT_CONSTRUCTOR) {
-							executionContext.as(autoinitTrope).getConstructor().apply(null, args);
-
-						} else if (autoinitConfig.mode === AUTOINIT_ARGS) {
-							executionContext.as(autoinitTrope).getConstructor().apply(null, autoinitConfig.args);
-						} else if (autoinitConfig.mode === AUTOINIT_INIT_FUNC) {
-							executionContext.as(autoinitTrope).callAsConstructor(function (ctx) {
-								autoinitConfig.initFunc.apply(ctx, args);
-							});
-						}
-					});
-				}
-				executionContext.callAsConstructor(function (ctx) {
-					trope.constr.apply(ctx, args);
-				});
-				return executionContext.getPublicContext();
 			};
 		},
 		getPrototype: function () {
