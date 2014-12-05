@@ -193,9 +193,9 @@ var Trope = (function () {
 		return ExecutionStack(Object.create(ExecutionStack.prototype));
 	};
 
-	var EXEC_METHOD = 0x3200;
+	var EXEC_OVERRIDE_METHOD = 0x3200;
 	var EXEC_CONSTRUCTOR = 0x3000;
-	var EXEC_FUNCTION = 0x3300;
+	var EXEC_METHOD = 0x3300;
 	function ExecutionContext (self, trope, pubCtx, privateCtx, executionStack) {
 		self.trope = ensureIsATrope(trope);
 		self.pubCtx = pubCtx || Object.create(self.trope.finalProto);
@@ -220,24 +220,24 @@ var Trope = (function () {
 			}
 			return false;
 		},
-		addMethod: function (name, method, trope) {
+		overrideMethod: function (name, method, asTrope) {
 			var self = this;
-			var superMethod;
-			var superTrope;
+			var originalMethod;
 			if (self.pubCtx.hasOwnProperty && self.pubCtx.hasOwnProperty(name)) {
-				superMethod = self.pubCtx[name];
-				superTrope = superMethod.trope;
+				originalMethod = self.pubCtx[name];
 			}
 
 			self.pubCtx[name] = function () {
 				var args = arguments;
-				var executionContext = self.as(trope);
-				self.executionStack.push(executionContext, EXEC_METHOD, {methodName: name, superMethod: superMethod, superTrope: superTrope});
+				var executionContext = self;
+				if (asTrope) {
+					executionContext = self.as(asTrope);
+				}
+				self.executionStack.push(executionContext, EXEC_OVERRIDE_METHOD, {name: name, superMethod: originalMethod});
 				var returnValue = method.apply(executionContext.getTargetContext(), args);
 				self.executionStack.pop();
 				return returnValue;
 			};
-			self.pubCtx[name].trope = trope;
 		},
 		getPublicContext: function () {
 			return this.pubCtx;
@@ -254,16 +254,13 @@ var Trope = (function () {
 			}
 			return ctx;
 		},
-		callWithContext: function (executionMode, func, targetCtx) {
-			this.executionStack.push(this, executionMode);
+		callWithContext: function (executionMode, func, targetCtx, data) {
+			this.executionStack.push(this, executionMode, data);
 			var returnValue = func(targetCtx);
 			this.executionStack.pop();
 			return returnValue;
 		},
-		callAsMethod: function (name, func) {
-			return this.callWithContext(EXEC_METHOD, func, this.targetCtx);
-		},
-		getAsMemberFunction: function (func, isPrivate) {
+		getAsMemberFunction: function (name, func, isPrivate) {
 			var self = this;
 			var targetCtx = self.targetCtx;
 			if (isPrivate === false) {
@@ -274,17 +271,21 @@ var Trope = (function () {
 			return function () {
 				var args = arguments;
 				var returnValue;
-				self.callWithContext(EXEC_FUNCTION, function (ctx) {
+				self.callWithContext(EXEC_METHOD, function (ctx) {
 					returnValue = func.apply(ctx, args);
-				}, targetCtx);
+				}, targetCtx, {name: name});
 				return returnValue;
 			};
 		},
-		getAsPublicFunction: function (func) {
-			return this.getAsMemberFunction(func, false);
+		getAsPublicFunction: function (name, func) {
+			return this.getAsMemberFunction(name, func, false);
 		},
-		getAsPrivateFunction: function (func) {
-			return this.getAsMemberFunction(func, true);
+		getAsPrivateFunction: function (name, func) {
+			return this.getAsMemberFunction(name, func, true);
+		},
+		getMethod: function (name) {
+			var method = this.trope.methodMap[name];
+			return this.as(method.trope).getAsMemberFunction(name, method.func);
 		},
 		callAsConstructor: function (func) {
 			return this.callWithContext(EXEC_CONSTRUCTOR, func, this.targetCtx);
@@ -314,8 +315,10 @@ var Trope = (function () {
 
 			if (execType === EXEC_CONSTRUCTOR) {
 				return this.getConstructor();
-			} else if (execType === EXEC_METHOD) {
+			} else if (execType === EXEC_OVERRIDE_METHOD) {
 				return execData.superMethod;
+			} else if (execType === EXEC_METHOD) {
+				return this.getMethod(execData.name);
 			} else {
 				return undefined;
 			}
@@ -445,7 +448,18 @@ var Trope = (function () {
 			return false; //defaults to false
 		}());
 
-		// trope.superConstr = trope.getSuperConstructor();
+		trope.methodMap = (function () {
+			var methodMap = {};
+			trope.forEachTropeInChain(function (currentTrope) {
+				currentTrope.forEachMethod(function (method, methodName) {
+					methodMap[methodName] = {
+						trope: currentTrope,
+						func: method
+					};
+				});
+			});
+			return methodMap;
+		}());
 
 		trope.autoInitializeConfigs = [];
 		trope.forEachTropeInChain(function (currentTrope) {
@@ -469,7 +483,7 @@ var Trope = (function () {
 	}
 
 	Trope.prototype = {
-		getConstructor: function (isSuper) {
+		getConstructor: function () {
 			var trope = this;
 			return (function (constr) {
 				constr.prototype = trope.finalProto;
@@ -511,10 +525,9 @@ var Trope = (function () {
 					}
 				}
 
-				trope.forEachTropeInChain(function (currentTrope) {
-					currentTrope.forEachMethod(function (method, methodName) {
-						executionContext.addMethod(methodName, method, currentTrope);
-					});
+				Object.keys(trope.methodMap).forEach(function (methodName) {
+					var methodData = trope.methodMap[methodName];
+					pubCtx[methodName] = executionContext.as(methodData.trope).getAsMemberFunction(methodName, methodData.func);
 				});
 
 				if (trope.instanceContructor) {
