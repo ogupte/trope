@@ -155,6 +155,9 @@ var Trope = (function () {
 		'compound',
 		'enhance'
 	]));
+	var NO_SUPER_THROW = function () {
+		new Error('No Super Function Found.');
+	};
 
 	function ensureIsATrope (trope) {
 		if (!(trope instanceof Trope)) {
@@ -196,6 +199,7 @@ var Trope = (function () {
 	var EXEC_OVERRIDE_METHOD = 0x3200;
 	var EXEC_CONSTRUCTOR = 0x3000;
 	var EXEC_METHOD = 0x3300;
+	var EXEC_PRIVATE_METHOD = 0x3400;
 	function ExecutionContext (self, trope, pubCtx, privateCtx, executionStack) {
 		self.trope = ensureIsATrope(trope);
 		self.pubCtx = pubCtx || Object.create(self.trope.finalProto);
@@ -260,32 +264,40 @@ var Trope = (function () {
 			this.executionStack.pop();
 			return returnValue;
 		},
-		getAsMemberFunction: function (name, func, isPrivate) {
+		getAsMemberFunction: function (name, func, isPrivate, syncMode) {
 			var self = this;
 			var targetCtx = self.targetCtx;
+			var execMode = EXEC_METHOD;
 			if (isPrivate === false) {
 				targetCtx = self.pubCtx;
 			} else if (isPrivate === true) {
 				targetCtx = self.privateCtx;
+				if (syncMode) {
+					execMode = EXEC_PRIVATE_METHOD;
+				}
 			}
 			return function () {
 				var args = arguments;
 				var returnValue;
-				self.callWithContext(EXEC_METHOD, function (ctx) {
+				self.callWithContext(execMode, function (ctx) {
 					returnValue = func.apply(ctx, args);
 				}, targetCtx, {name: name});
 				return returnValue;
 			};
 		},
-		getAsPublicFunction: function (name, func) {
-			return this.getAsMemberFunction(name, func, false);
+		getAsPublicMethod: function (name, func) {
+			return this.getAsMemberFunction(name, func, false, true);
 		},
-		getAsPrivateFunction: function (name, func) {
-			return this.getAsMemberFunction(name, func, true);
+		getAsPrivateMethod: function (name, func) {
+			return this.getAsMemberFunction(name, func, true, true);
 		},
 		getMethod: function (name) {
 			var method = this.trope.methodMap[name];
 			return this.as(method.trope).getAsMemberFunction(name, method.func);
+		},
+		getPrivateMethod: function (name) {
+			var method = this.trope.privateMethodMap[name];
+			return this.as(method.trope).getAsPrivateMethod(name, method.func);
 		},
 		callAsConstructor: function (func) {
 			return this.callWithContext(EXEC_CONSTRUCTOR, func, this.targetCtx);
@@ -319,6 +331,8 @@ var Trope = (function () {
 				return execData.superMethod;
 			} else if (execType === EXEC_METHOD) {
 				return this.getMethod(execData.name);
+			} else if (execType === EXEC_PRIVATE_METHOD) {
+				return this.getPrivateMethod(execData.name);
 			} else {
 				return undefined;
 			}
@@ -439,6 +453,9 @@ var Trope = (function () {
 			return true; // defaults to true
 		}());
 		trope.isPrivate = (function () {
+			if (def.private) {
+				return true;
+			}
 			if (def.privacy !== undefined) {
 				return def.privacy; //use-defined takes top priority
 			}
@@ -458,6 +475,29 @@ var Trope = (function () {
 					};
 				});
 			});
+			return methodMap;
+		}());
+
+		trope.privateMethodMap = (function () {
+			var methodMap = null;
+			if (trope.inherits && trope.inherits.privateMethodMap){
+				methodMap = {};
+				forEachMethod(trope.inherits.privateMethodMap, function (method, methodName) {
+					methodMap[methodName] = method;
+				});
+			}
+			if (trope.def.private && methodMap === null) {
+				methodMap = {};
+			}
+			if (trope.def.private) {
+				forEachMethod(trope.def.private, function (method, methodName) {
+					methodMap[methodName] = {
+						name: methodName,
+						func: method,
+						trope: trope
+					};
+				});
+			}
 			return methodMap;
 		}());
 
@@ -508,9 +548,7 @@ var Trope = (function () {
 						Object.defineProperty(pubCtx, 'super', {
 							enumerable: false,
 							get: function () {
-								var superFunction = function () {
-									new Error('No Super Function Found.');
-								};
+								var superFunction = NO_SUPER_THROW;
 								if (trope.inherits) {
 									superFunction = executionContext.getSuperFunction();
 								}
@@ -529,6 +567,12 @@ var Trope = (function () {
 					var methodData = trope.methodMap[methodName];
 					pubCtx[methodName] = executionContext.as(methodData.trope).getAsMemberFunction(methodName, methodData.func);
 				});
+				if (trope.privateMethodMap) {
+					Object.keys(trope.privateMethodMap).forEach(function (methodName) {
+						var methodData = trope.privateMethodMap[methodName];
+						privateCtx[methodName] = executionContext.as(methodData.trope).getAsPrivateMethod(methodName, methodData.func);
+					});
+				}
 
 				if (trope.instanceContructor) {
 					setNonEnumerableProperty(pubCtx, CONSTRUCTOR, trope.instanceContructor);

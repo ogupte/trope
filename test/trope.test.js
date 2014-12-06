@@ -1446,6 +1446,118 @@ describe('Trope Usage', function () {
 		});
 	});
 
+	describe('Configuration: private', function () {
+		describe('adding private methods', function () {
+			describe('basic', function () {
+				it('should have methods which are private', function () {
+					var Calculator = Trope.define({
+						constructor: function Calculator () {
+							this.reset();
+						},
+						private: {
+							reset: function () {
+								this.evaluated = false;
+								this.firstNumber = '';
+								this.secondNumber = '';
+								this.operation = null;
+								this.result = null;
+								this.exports.display = '';
+							},
+							ensureValid: function () {
+								var validNumRgx = /^-?(\d)*\.?(\d)+$/;
+								if (this.operation) {
+									return validNumRgx.test(this.firstNumber) && validNumRgx.test(this.secondNumber);
+								} else {
+									return false;
+								}
+							},
+							updateDisplay: function () {
+								if (this.evaluated) {
+									this.exports.display = this.result.toString(10);
+								} else {
+									if (this.operation === null) {
+										this.exports.display = this.firstNumber;
+									} else {
+										this.exports.display = this.firstNumber + ' ' + this.operation + ' ' + this.secondNumber;
+									}
+								}
+							}
+						},
+						prototype: {
+							enterNumber: function (numberChar) {
+								if (this.evaluated) {
+									this.reset();
+								}
+								if (this.operation === null) {
+									this.firstNumber += numberChar;
+								} else {
+									this.secondNumber += numberChar;
+								}
+								this.updateDisplay();
+							},
+							selectAdd: function () {
+								this.operation = '+';
+								this.updateDisplay();
+							},
+							evaluate: function () {
+								if (this.ensureValid()) {
+									var firstNumber = parseFloat(this.firstNumber, 10);
+									var secondNumber = parseFloat(this.secondNumber, 10);
+									if (this.operation === '+') {
+										this.result = firstNumber + secondNumber;
+									}
+									this.evaluated = true;
+									this.updateDisplay();
+								} else {
+									this.reset();
+									this.exports.display = 'ERR';
+								}
+							},
+							clear: function () {
+								this.reset();
+							}
+						}
+					});
+					var calculator = Calculator.create();
+					calculator.enterNumber('3');
+					expect(calculator.display).to.equal('3');
+					calculator.enterNumber('2');
+					expect(calculator.display).to.equal('32');
+					calculator.selectAdd();
+					expect(calculator.display).to.equal('32 + ');
+					calculator.enterNumber('1');
+					expect(calculator.display).to.equal('32 + 1');
+					calculator.enterNumber('0');
+					expect(calculator.display).to.equal('32 + 10');
+					calculator.evaluate();
+					expect(calculator.display).to.equal('42');
+					calculator.clear();
+					expect(calculator.display).to.equal('');
+
+
+					expect(calculator).to.not.have.property('reset');
+					expect(calculator).to.not.have.property('ensureValid');
+					expect(calculator).to.not.have.property('updateDisplay');
+					expect(calculator).to.not.have.property('evaluated');
+					expect(calculator).to.not.have.property('firstNumber');
+					expect(calculator).to.not.have.property('secondNumber');
+					expect(calculator).to.not.have.property('operation');
+					expect(calculator).to.not.have.property('result');
+					expect(calculator).to.have.property('display');
+					expect(calculator.display).to.be.a.string;
+					expect(calculator).to.have.property('enterNumber');
+					expect(calculator.enterNumber).to.be.a.function;
+					expect(calculator).to.have.property('selectAdd');
+					expect(calculator.selectAdd).to.be.a.function;
+					expect(calculator).to.have.property('evaluate');
+					expect(calculator.evaluate).to.be.a.function;
+					expect(calculator).to.have.property('clear');
+					expect(calculator.clear).to.be.a.function;
+				});
+			});
+		});
+	});
+
 	describe('Configuration: autoinit', function () {
 		var BaseType = Trope(function BaseType () {
 			this.baseState = 'setup';
