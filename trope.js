@@ -47,8 +47,9 @@ function mix (srcObj, destObj) {
 	if (srcObj === destObj) {
 		return destObj;
 	}
-	var keys = Object.keys(srcObj),
-		i, key;
+	var keys = Object.keys(srcObj);
+	var i;
+	var key;
 	for (i=0; i<keys.length; i+=1) {
 		key = keys[i];
 		destObj[key] = srcObj[key];
