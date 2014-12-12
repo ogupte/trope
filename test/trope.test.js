@@ -1555,6 +1555,137 @@ describe('Trope Usage', function () {
 					expect(calculator.clear).to.be.a.function;
 				});
 			});
+			describe('with inheritance', function () {
+				xit('should work', function () {
+					var EventEmitter = Trope.define({
+						constructor: function EventEmitter (ctx) {
+							this.eventMap = {};
+							this.context = ctx || null;
+						},
+						private: {
+							initializeEventName: function (eventName) {
+								this.eventMap[eventName] = {
+									on: [],
+									once: []
+								};
+							},
+							getEventInfo: function (eventName) {
+								if (!this.eventMap[eventName]) {
+									this.initializeEventName(eventName);
+								}
+								return this.eventMap[eventName];
+							},
+							findHandler: function (handler) {
+								var self = this;
+								var eventName;
+								var i;
+								for (eventName in self.eventMap) {
+									if (self.eventMap.hasOwnProperty(eventName)) {
+										for (i=0; i<self.eventMap[eventName].on.length; i++) {
+											if (self.eventMap[eventName].on[i] === handler) {
+												return {
+													eventName: eventName,
+													key: 'on',
+													index: i,
+													array: self.eventMap[eventName].on
+												};
+											}
+										}
+										for (i=0; i<self.eventMap[eventName].once.length; i++) {
+											if (self.eventMap[eventName].once[i] === handler) {
+												return {
+													eventName: eventName,
+													key: 'once',
+													index: i,
+													array: self.eventMap[eventName].once
+												};
+											}
+										}
+									}
+								}
+								return false;
+							}
+						},
+						prototype: {
+							on: function (eventName, handler) {
+								this.getEventInfo(eventName).on.push(handler);
+								return handler;
+							},
+							once: function (eventName, handler) {
+								this.getEventInfo(eventName).once.push(handler);
+								return handler;
+							},
+							fire: function (eventName) {
+								var self = this;
+								var args = arguments;
+								var eventData = [];
+								var i;
+								for (i=1; i<args.length; i++) {
+									eventData.push(args[i]);
+								}
+								this.getEventInfo(eventName).on.forEach(function (handler) {
+									if (handler) {
+										handler.apply(self.context, eventData);
+									}
+								});
+								this.getEventInfo(eventName).once.forEach(function (handler) {
+									if (handler) {
+										handler.apply(self.context, eventData);
+									}
+								});
+								this.getEventInfo(eventName).once = [];
+							},
+							remove: function (handler) {
+								var handlerResult = this.findHandler(handler);
+								if (handlerResult) {
+									handlerResult.array[handlerResult.index] = null;
+									return handler;
+								}
+								return false;
+							},
+							clear: function (eventName) {
+								this.initializeEventName(eventName);
+							}
+						}
+					});
+
+					var stack = [];
+					var appended;
+
+					var ee = EventEmitter.create();
+					var handler = ee.on('append', function (data) {
+						stack.push(data);
+					});
+					ee.once('append', function (data) {
+						appended = data;
+					});
+					ee.fire('append', 4);
+					ee.fire('append', 2);
+					ee.remove(handler);
+					ee.fire('append', 6);
+					ee.fire('append', 7);
+					ee.once('append', function (data) {
+						appended = data;
+					});
+					ee.clear('append');
+					ee.fire('append', 3);
+					ee.fire('append', 1);
+
+					expect(stack).to.deep.equal([4, 2]);
+					expect(appended).to.equal(4);
+
+					expect(ee).to.have.property('on');
+					expect(ee).to.have.property('once');
+					expect(ee).to.have.property('fire');
+					expect(ee).to.have.property('remove');
+					expect(ee).to.have.property('clear');
+					expect(ee).to.not.have.property('initializeEventName');
+					expect(ee).to.not.have.property('getEventInfo');
+					expect(ee).to.not.have.property('findHandler');
+					expect(ee).to.not.have.property('eventMap');
+					expect(ee).to.not.have.property('context');
+				});
+			});
 		});
 	});
 
