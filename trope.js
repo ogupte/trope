@@ -156,9 +156,6 @@ var Trope = (function () {
 		'compound',
 		'enhance'
 	]));
-	var NO_SUPER_THROW = function () {
-		new Error('No Super Function Found.');
-	};
 
 	function ensureIsATrope (trope) {
 		if (!(trope instanceof Trope)) {
@@ -557,7 +554,7 @@ var Trope = (function () {
 						Object.defineProperty(pubCtx, 'super', {
 							enumerable: false,
 							get: function () {
-								var superFunction = NO_SUPER_THROW;
+								var superFunction;
 								if (trope.inherits) {
 									superFunction = executionContext.getSuperFunction();
 								}
