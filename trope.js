@@ -574,12 +574,12 @@ var Trope = (function () {
 
 				Object.keys(trope.methodMap).forEach(function (methodName) {
 					var methodData = trope.methodMap[methodName];
-					pubCtx[methodName] = executionContext.as(methodData.trope).getAsMemberFunction(methodName, methodData.func);
+					setNonEnumerableProperty(pubCtx, methodName, executionContext.as(methodData.trope).getAsMemberFunction(methodName, methodData.func));
 				});
 				if (trope.privateMethodMap) {
-					Object.keys(trope.privateMethodMap).forEach(function (methodName) {
-						var methodData = trope.privateMethodMap[methodName];
-						privateCtx[methodName] = executionContext.as(methodData.trope).getAsPrivateMethod(methodName, methodData.func);
+					Object.keys(trope.privateMethodMap).forEach(function (privateMethodName) {
+						var privateMethodData = trope.privateMethodMap[privateMethodName];
+						setNonEnumerableProperty(privateCtx, privateMethodName, executionContext.as(privateMethodData.trope).getAsMemberFunction(privateMethodName, privateMethodData.func));
 					});
 				}
 
