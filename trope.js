@@ -424,10 +424,18 @@ var Trope = (function () {
 		}());
 
 		trope.typeName = (function () {
+			var functionName;
 			if (def.type) {
 				return def.type;
 			} else if (trope.constr !== Object && trope.constr.name) {
 				return trope.constr.name;
+			} else if ((function () {
+				// this handles getting the constructor name in IE
+				var functionSource = trope.constr.toString();
+				functionName = functionSource.substr(0, functionSource.indexOf('(')).replace('function', '').trim();
+				return functionName;
+			}())) {
+				return functionName;
 			} else if (trope.inherits) {
 				return trope.inherits.typeName + '\u2093';
 			} else {
