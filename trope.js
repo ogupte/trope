@@ -1,27 +1,25 @@
-((function (namespace, moduleDefinition, DEFINITION_CONTEXT) {
+((function (namespace, moduleDefinition) {
 	'use strict';
 	var MODULE;
 	var EXPORTS;
-	var isBrowser = false;
-	if (typeof window !== 'undefined') { // define for browser
-		isBrowser = true;
+	if (typeof module !== 'undefined' && module.exports) { // define for CommonJS
+		MODULE = module;
+		EXPORTS = module.exports;
+	} else {
 		MODULE = {
 			'exports': {}
 		};
 		EXPORTS = MODULE.exports;
-	} else if (typeof module !== 'undefined' && module.exports) { // define for CommonJS
-		MODULE = module;
-		EXPORTS = module.exports;
 	}
-	var moduleDefinitionReturns = moduleDefinition(MODULE, EXPORTS, DEFINITION_CONTEXT);
+	var moduleDefinitionReturns = moduleDefinition(MODULE, EXPORTS);
 	if (moduleDefinitionReturns) {
 		MODULE.exports = moduleDefinitionReturns;
 	}
-	if (isBrowser) {
+	if (typeof window !== 'undefined') { // define for browser
 		window[namespace] = MODULE.exports;
 	}
 	return moduleDefinitionReturns;
-})('Trope', function (module, exports, CONTEXT) {
+})('Trope', function (module, exports) {
 //START trope.js
 'use strict';
 
@@ -114,8 +112,7 @@ function applyAliases(object, aliases, target) {
 
 */
 var Trope = (function () {
-	var globalCtx = CONTEXT;
-	var exports = Define;
+	module.exports = Define;
 	var OBJECT = 'object';
 	var FUNCTION = 'function';
 	var STRING = 'string';
@@ -156,9 +153,6 @@ var Trope = (function () {
 		'compound',
 		'enhance'
 	]));
-	var NO_SUPER_THROW = function () {
-		new Error('No Super Function Found.');
-	};
 
 	function ensureIsATrope (trope) {
 		if (!(trope instanceof Trope)) {
@@ -424,10 +418,18 @@ var Trope = (function () {
 		}());
 
 		trope.typeName = (function () {
+			var functionName;
 			if (def.type) {
 				return def.type;
 			} else if (trope.constr !== Object && trope.constr.name) {
 				return trope.constr.name;
+			} else if ((function () {
+				// this handles getting the constructor name in IE
+				var functionSource = trope.constr.toString();
+				functionName = functionSource.substr(0, functionSource.indexOf('(')).replace('function', '').trim();
+				return functionName;
+			}())) {
+				return functionName;
 			} else if (trope.inherits) {
 				return trope.inherits.typeName + '\u2093';
 			} else {
@@ -549,7 +551,7 @@ var Trope = (function () {
 						Object.defineProperty(pubCtx, 'super', {
 							enumerable: false,
 							get: function () {
-								var superFunction = NO_SUPER_THROW;
+								var superFunction;
 								if (trope.inherits) {
 									superFunction = executionContext.getSuperFunction();
 								}
@@ -566,12 +568,12 @@ var Trope = (function () {
 
 				Object.keys(trope.methodMap).forEach(function (methodName) {
 					var methodData = trope.methodMap[methodName];
-					pubCtx[methodName] = executionContext.as(methodData.trope).getAsMemberFunction(methodName, methodData.func);
+					setNonEnumerableProperty(pubCtx, methodName, executionContext.as(methodData.trope).getAsMemberFunction(methodName, methodData.func));
 				});
 				if (trope.privateMethodMap) {
-					Object.keys(trope.privateMethodMap).forEach(function (methodName) {
-						var methodData = trope.privateMethodMap[methodName];
-						privateCtx[methodName] = executionContext.as(methodData.trope).getAsPrivateMethod(methodName, methodData.func);
+					Object.keys(trope.privateMethodMap).forEach(function (privateMethodName) {
+						var privateMethodData = trope.privateMethodMap[privateMethodName];
+						setNonEnumerableProperty(privateCtx, privateMethodName, executionContext.as(privateMethodData.trope).getAsMemberFunction(privateMethodName, privateMethodData.func));
 					});
 				}
 
@@ -695,13 +697,13 @@ var Trope = (function () {
 			return shareConstructor;
 		}
 	};
-	exports.Trope = Trope;
+	module.exports.Trope = Trope;
 
 	function define (def) {
 		var trope = new Trope(def);
 		return trope.getConstructor();
 	}
-	exports.define = define;
+	module.exports.define = define;
 
 	// possibly implement this as a state machine to get rid of useless combinations
 	var arityMap = {
@@ -810,7 +812,7 @@ var Trope = (function () {
 		var def = supportedArityHandler.apply(arityMap, args);
 		return define(def);
 	}
-	exports.Define = Define;
+	module.exports.Define = Define;
 
 	function instanceOf (arg0, arg1) {
 		if (arguments.length !== 2) {
@@ -832,13 +834,9 @@ var Trope = (function () {
 			return obj instanceof constr;
 		}
 	}
-	exports.instanceOf = instanceOf;
+	module.exports.instanceOf = instanceOf;
 
-	applyAliases(exports, DEFINE_ALIAS, Define);
-
-	return exports;
+	applyAliases(module.exports, DEFINE_ALIAS, Define);
 }());
-
-module.exports = Trope;
 //END trope.js
-}, this));
+}));
