@@ -1558,6 +1558,7 @@ describe('Trope Usage', function () {
 			describe('with inheritance', function () {
 				xit('should work', function () {
 					var EventEmitter = Trope.define({
+						autoinit: true,
 						constructor: function EventEmitter (ctx) {
 							this.eventMap = {};
 							this.context = ctx || null;
@@ -1615,7 +1616,7 @@ describe('Trope Usage', function () {
 								this.getEventInfo(eventName).once.push(handler);
 								return handler;
 							},
-							fire: function (eventName) {
+							emit: function (eventName) {
 								var self = this;
 								var args = arguments;
 								var eventData = [];
@@ -1659,24 +1660,24 @@ describe('Trope Usage', function () {
 					ee.once('append', function (data) {
 						appended = data;
 					});
-					ee.fire('append', 4);
-					ee.fire('append', 2);
+					ee.emit('append', 4);
+					ee.emit('append', 2);
 					ee.remove(handler);
-					ee.fire('append', 6);
-					ee.fire('append', 7);
+					ee.emit('append', 6);
+					ee.emit('append', 7);
 					ee.once('append', function (data) {
 						appended = data;
 					});
 					ee.clear('append');
-					ee.fire('append', 3);
-					ee.fire('append', 1);
+					ee.emit('append', 3);
+					ee.emit('append', 1);
 
 					expect(stack).to.deep.equal([4, 2]);
 					expect(appended).to.equal(4);
 
 					expect(ee).to.have.property('on');
 					expect(ee).to.have.property('once');
-					expect(ee).to.have.property('fire');
+					expect(ee).to.have.property('emit');
 					expect(ee).to.have.property('remove');
 					expect(ee).to.have.property('clear');
 					expect(ee).to.not.have.property('initializeEventName');
