@@ -573,7 +573,7 @@ var Trope = (function () {
 				if (trope.privateMethodMap) {
 					Object.keys(trope.privateMethodMap).forEach(function (privateMethodName) {
 						var privateMethodData = trope.privateMethodMap[privateMethodName];
-						setNonEnumerableProperty(privateCtx, privateMethodName, executionContext.as(privateMethodData.trope).getAsMemberFunction(privateMethodName, privateMethodData.func));
+						setNonEnumerableProperty(privateCtx, privateMethodName, executionContext.getAsPrivateMethod(privateMethodName, privateMethodData.func));
 					});
 				}
 
