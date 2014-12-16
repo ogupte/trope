@@ -529,7 +529,6 @@ var Trope = (function () {
 		getConstructor: function () {
 			var trope = this;
 			return (function (constr) {
-				constr.prototype = trope.finalProto;
 				constr.trope = trope;
 				constr.create = function create () {
 					return constr.apply(null, arguments);
@@ -541,7 +540,10 @@ var Trope = (function () {
 		buildProxyConstructor: function () {
 			var trope = this;
 			// return a proxy constructor function
-			return function () {
+			return (function (proxyConstructor){
+				proxyConstructor.prototype = trope.finalProto; // set the prototype of the proxy constructor to the actual prototype object
+				return proxyConstructor; // return a proxy constructor function
+			}(function () {
 				var args = arguments;
 				var executionContext = ExecutionContext.create(trope);
 				var pubCtx = executionContext.getPublicContext();
@@ -596,7 +598,7 @@ var Trope = (function () {
 					trope.constr.apply(ctx, args);
 				});
 				return pubCtx;
-			};
+			}));
 		},
 		getPrototype: function () {
 			var trope = this;
