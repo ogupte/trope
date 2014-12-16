@@ -380,6 +380,8 @@ var Trope = (function () {
 		trope.proto = (function () {
 			if (def.prototype) {
 				return def.prototype;
+			} else if (def.public) {
+				return def.public;
 			} else if (def.prototype === null) {
 				return Object.create(null);
 			} else if (Object.hasOwnProperty.call(def.constructor, PROTOTYPE)) {
@@ -396,6 +398,8 @@ var Trope = (function () {
 				} else {
 					return def.constructor;
 				}
+			} else if (def.init) {
+				return def.init;
 			} else if (trope.proto.hasOwnProperty && trope.proto.hasOwnProperty(CONSTRUCTOR)) {
 				return trope.proto.constructor;
 			} else if (trope.proto instanceof Object) {
