@@ -1556,7 +1556,65 @@ describe('Trope Usage', function () {
 				});
 			});
 			describe('with inheritance', function () {
-				xit('should work', function () {
+				it('should work', function () {
+					var User = Trope.define({
+						constructor: function (username, features) {
+							this.features = features;
+							this.username = username;
+						},
+						private: {
+							hasPermission: function (feature) {
+								var i;
+								for (i=0; i<this.features.length; i++) {
+									if (this.features[i] === feature) {
+										return true;
+									}
+								}
+								return false;
+							},
+							getName: function () {
+								return this.username;
+							}
+						},
+						prototype: {
+							canIUse: function (feature) {
+								return this.hasPermission(feature);
+							},
+							getDisplayName: function () {
+								return this.getName();
+							}
+						}
+					});
+					var Admin = User.turn({
+						__TROPEDEF__: true,
+						constructor: function (username) {
+							this.super(username, []);
+						},
+						private: {
+							hasPermission: function (feature) {
+								return true;
+							},
+							getName: function () {
+								return this.super() + ' (ADMIN)';
+							}
+						},
+						prototype: {
+							canIUse: function (feature) {
+								return this.hasPermission(feature);
+							}
+						}
+					});
+					var user = User.create('user1234', ['api-read', 'reporting', 'comments']);
+					var admin = Admin.create('user1234');
+					expect(user.canIUse('api-read')).to.be.true;
+					expect(user.canIUse('api-write')).to.be.false;
+					expect(admin.canIUse('api-read')).to.be.true;
+					expect(admin.canIUse('api-write')).to.be.true;
+					expect(user.getDisplayName()).to.equal('user1234');
+					expect(admin.getDisplayName()).to.equal('user1234 (ADMIN)');
+				});
+
+				xit('unnecessary test', function () {
 					var EventEmitter = Trope.define({
 						autoinit: true,
 						constructor: function EventEmitter (ctx) {
