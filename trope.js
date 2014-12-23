@@ -112,7 +112,16 @@ function applyAliases(object, aliases, target) {
 
 */
 var Trope = (function () {
-	module.exports = Define;
+	function tropeDefaultAction () {
+		return module.exports['default'].apply(module.exports, arguments);
+	}
+	module.exports = tropeDefaultAction;
+
+	function set (key, value) {
+		module.exports[key] = value;
+	}
+	set('set', set);
+
 	var OBJECT = 'object';
 	var FUNCTION = 'function';
 	var STRING = 'string';
@@ -726,7 +735,7 @@ var Trope = (function () {
 		var trope = new Trope(def);
 		return trope.getConstructor();
 	}
-	module.exports.define = define;
+	set('define', define);
 
 	// possibly implement this as a state machine to get rid of useless combinations
 	var arityMap = {
@@ -835,7 +844,8 @@ var Trope = (function () {
 		var def = supportedArityHandler.apply(arityMap, args);
 		return define(def);
 	}
-	module.exports.Define = Define;
+	set('Define', Define);
+	set('default', Define);
 
 	function instanceOf (arg0, arg1) {
 		if (arguments.length !== 2) {
@@ -857,11 +867,7 @@ var Trope = (function () {
 			return obj instanceof constr;
 		}
 	}
-	module.exports.instanceOf = instanceOf;
-
-	module.exports.set = function (key, value) {
-		module.exports[key] = value;
-	};
+	set('instanceOf', instanceOf);
 
 	applyAliases(module.exports, DEFINE_ALIAS, Define);
 }());
