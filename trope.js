@@ -859,6 +859,10 @@ var Trope = (function () {
 	}
 	module.exports.instanceOf = instanceOf;
 
+	module.exports.set = function (key, value) {
+		module.exports[key] = value;
+	};
+
 	applyAliases(module.exports, DEFINE_ALIAS, Define);
 }());
 //END trope.js
