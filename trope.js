@@ -195,6 +195,9 @@ var Trope = (function () {
 	var EXEC_CONSTRUCTOR = 0x3000;
 	var EXEC_METHOD = 0x3300;
 	var EXEC_PRIVATE_METHOD = 0x3400;
+	/**
+	ExecutionContext controls most of the run-time logic.
+	*/
 	function ExecutionContext (self, trope, pubCtx, privateCtx, executionStack) {
 		self.trope = ensureIsATrope(trope);
 		self.pubCtx = pubCtx || Object.create(self.trope.finalProto);
@@ -351,6 +354,9 @@ var Trope = (function () {
 		}
 	};
 
+	/**
+	Trope constructor controls all of the definition-time logic.
+	*/
 	function Trope (def) {
 		if (typeof def === FUNCTION) {
 			if (def.trope && def.trope instanceof Trope) {
