@@ -869,6 +869,33 @@ var Trope = (function () {
 	}
 	set('instanceOf', instanceOf);
 
+	function interpret () {
+		var args = arguments;
+		var i;
+		var stack = [];
+		var def = {};
+		for (i=0; i<args.length; i++) {
+			stack.push(args[i]);
+		}
+		var arg = stack.pop();
+		while (arg) {
+			if (typeof arg === 'function') {
+				if (arg.trope) {
+					def = arg.trope.getDefinition(def);
+				} else {
+					def.constructor = arg;
+				}
+			}if (typeof arg === 'object') {
+				def.prototype = arg;
+			} else if (typeof arg === 'string') {
+				def.type = arg;
+			}
+			arg = stack.pop();
+		}
+		return define(def);
+	}
+	set('interpret', interpret);
+
 	applyAliases(module.exports, DEFINE_ALIAS, Define);
 }());
 //END trope.js
