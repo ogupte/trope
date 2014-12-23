@@ -485,8 +485,9 @@ var Trope = (function () {
 			var methodMap = null;
 			if (trope.inherits && trope.inherits.privateMethodMap){
 				methodMap = {};
-				forEachMethod(trope.inherits.privateMethodMap, function (method, methodName) {
-					methodMap[methodName] = method;
+				Object.keys(trope.inherits.privateMethodMap).forEach(function (methodName) {
+					var methodData = trope.inherits.privateMethodMap[methodName];
+					methodMap[methodName] = methodData;
 				});
 			}
 			if (trope.def.private && methodMap === null) {
@@ -575,7 +576,7 @@ var Trope = (function () {
 				if (trope.privateMethodMap) {
 					Object.keys(trope.privateMethodMap).forEach(function (privateMethodName) {
 						var privateMethodData = trope.privateMethodMap[privateMethodName];
-						setNonEnumerableProperty(privateCtx, privateMethodName, executionContext.getAsPrivateMethod(privateMethodName, privateMethodData.func));
+						setNonEnumerableProperty(privateCtx, privateMethodName, executionContext.as(privateMethodData.trope).getAsPrivateMethod(privateMethodName, privateMethodData.func));
 					});
 				}
 
