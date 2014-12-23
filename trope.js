@@ -274,8 +274,12 @@ var Trope = (function () {
 			return function () {
 				var args = arguments;
 				var returnValue;
+				var _func = func;
 				self.callWithContext(execMode, function (ctx) {
-					returnValue = func.apply(ctx, args);
+					if (self.trope.isSelfish) { // if the defining trope is is 'selfish' mode
+						_func = func.bind(ctx, targetCtx); // pass in the target context as the first argument to the method
+					}
+					returnValue = _func.apply(ctx, args);
 				}, targetCtx, {name: name});
 				return returnValue;
 			};
@@ -337,7 +341,11 @@ var Trope = (function () {
 			return function () {
 				var args = arguments;
 				self.callAsConstructor(function (ctx) {
-					self.trope.constr.apply(ctx, args);
+					if (self.trope.isSelfish) { // if the defining trope is is 'selfish' mode
+						self.trope.constr.bind(ctx, self.getTargetContext()).apply(ctx, args); // pass in the target context as the first argument to the constructor, then apply
+					} else {
+						self.trope.constr.apply(ctx, args);// otherwise just apply the supplied arguments
+					}
 				});
 			};
 		}
@@ -455,6 +463,9 @@ var Trope = (function () {
 			}
 			return true; // defaults to true
 		}());
+
+		trope.isSelfish = !!def.selfish; // ensure isSelfish is a boolean
+
 		trope.isPrivate = (function () {
 			if (def.private) {
 				return true;
@@ -595,9 +606,8 @@ var Trope = (function () {
 						});
 					}
 				});
-				executionContext.callAsConstructor(function (ctx) {
-					trope.constr.apply(ctx, args);
-				});
+				// generate an appropriate constructor from the execution context and apply with the supplied arguments
+				executionContext.getConstructor().apply(executionContext.getTargetContext(), args);
 				return pubCtx;
 			}));
 		},

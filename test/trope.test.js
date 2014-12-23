@@ -1757,6 +1757,178 @@ describe('Trope Usage', function () {
 		});
 	});
 
+	describe('Configuration: selfish', function () {
+		var EventEmitter;
+		describe('basic', function () {
+			it('should bind the target context to the first arg of every method/constructor', function () {
+				EventEmitter = Trope.define({
+					autoinit: true,
+					selfish: true,
+					constructor: function EventEmitter (self, ctx) {
+						self.eventMap = {};
+						self.context = ctx || null;
+					},
+					private: {
+						initializeEventName: function (self, eventName) {
+							self.eventMap[eventName] = {
+								on: [],
+								once: []
+							};
+						},
+						getEventInfo: function (self, eventName) {
+							if (!self.eventMap[eventName]) {
+								self.initializeEventName(eventName);
+							}
+							return self.eventMap[eventName];
+						},
+						findHandler: function (self, handler) {
+							var eventName;
+							var i;
+							for (eventName in self.eventMap) {
+								if (self.eventMap.hasOwnProperty(eventName)) {
+									for (i=0; i<self.eventMap[eventName].on.length; i++) {
+										if (self.eventMap[eventName].on[i] === handler) {
+											return {
+												eventName: eventName,
+												key: 'on',
+												index: i,
+												array: self.eventMap[eventName].on
+											};
+										}
+									}
+									for (i=0; i<self.eventMap[eventName].once.length; i++) {
+										if (self.eventMap[eventName].once[i] === handler) {
+											return {
+												eventName: eventName,
+												key: 'once',
+												index: i,
+												array: self.eventMap[eventName].once
+											};
+										}
+									}
+								}
+							}
+							return false;
+						}
+					},
+					prototype: {
+						on: function (self, eventName, handler) {
+							self.getEventInfo(eventName).on.push(handler);
+							return handler;
+						},
+						once: function (self, eventName, handler) {
+							self.getEventInfo(eventName).once.push(handler);
+							return handler;
+						},
+						emit: function (self, eventName) {
+							var args = arguments;
+							var eventData = [];
+							var i;
+							for (i=2; i<args.length; i++) {
+								eventData.push(args[i]);
+							}
+							self.getEventInfo(eventName).on.forEach(function (handler) {
+								if (handler) {
+									handler.apply(self.context, eventData);
+								}
+							});
+							self.getEventInfo(eventName).once.forEach(function (handler) {
+								if (handler) {
+									handler.apply(self.context, eventData);
+								}
+							});
+							self.getEventInfo(eventName).once = [];
+						},
+						remove: function (self, handler) {
+							var handlerResult = self.findHandler(handler);
+							if (handlerResult) {
+								handlerResult.array[handlerResult.index] = null;
+								return handler;
+							}
+							return false;
+						},
+						clear: function (self, eventName) {
+							self.initializeEventName(eventName);
+						}
+					}
+				});
+
+				var stack = [];
+				var appended;
+
+				var ee = EventEmitter.create();
+				var handler = ee.on('append', function (data) {
+					stack.push(data);
+				});
+				ee.once('append', function (data) {
+					appended = data;
+				});
+				ee.emit('append', 4);
+				ee.emit('append', 2);
+				ee.remove(handler);
+				ee.emit('append', 6);
+				ee.emit('append', 7);
+				ee.once('append', function (data) {
+					appended = data;
+				});
+				ee.clear('append');
+				ee.emit('append', 3);
+				ee.emit('append', 1);
+
+				expect(stack).to.deep.equal([4, 2]);
+				expect(appended).to.equal(4);
+
+				expect(ee).to.have.property('on');
+				expect(ee).to.have.property('once');
+				expect(ee).to.have.property('emit');
+				expect(ee).to.have.property('remove');
+				expect(ee).to.have.property('clear');
+				expect(ee).to.not.have.property('initializeEventName');
+				expect(ee).to.not.have.property('getEventInfo');
+				expect(ee).to.not.have.property('findHandler');
+				expect(ee).to.not.have.property('eventMap');
+				expect(ee).to.not.have.property('context');
+			});
+		});
+		describe('with inheritance', function () {
+			it('should be able to inherit from a Trope defined with selfish without being selfish', function () {
+				// this test depends on the previous test to run first
+				var Stream = EventEmitter.extend({
+					write: function (data) {
+						this.emit('write', data);
+					},
+					read: function (onWrite) {
+						this.onWrite = this.on('write', onWrite);
+					},
+					end: function () {
+						if (this.onWrite) {
+							this.remove(this.onWrite);
+						}
+					}
+				});
+				var stream = Stream.create();
+				var buffer = [];
+				stream.read(function (data) {
+					buffer.push(data);
+				});
+				stream.write('no');
+				stream.write('one');
+				stream.write('expects');
+				stream.write('the');
+				stream.write('spanish');
+				stream.write('inquisition');
+				stream.end();
+				stream.write('foo');
+				stream.write('bar');
+				expect(buffer).to.deep.equal(['no','one','expects','the','spanish','inquisition']);
+				expect(stream).to.be.an.instanceOf(Stream);
+				expect(stream).to.be.an.instanceOf(EventEmitter);
+				expect(Stream.trope).to.have.property('isSelfish', false);
+				expect(EventEmitter.trope).to.have.property('isSelfish', true);
+			});
+		});
+	});
+
 	describe('Scenarios', function () {
 		describe('simple', function () {});
 		describe('complex', function () {
