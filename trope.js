@@ -729,7 +729,7 @@ var Trope = (function () {
 			return shareConstructor;
 		}
 	};
-	module.exports.Trope = Trope;
+	set('Trope',Trope);
 
 	function define (def) {
 		var trope = new Trope(def);
@@ -879,15 +879,15 @@ var Trope = (function () {
 		}
 		var arg = stack.pop();
 		while (arg) {
-			if (typeof arg === 'function') {
+			if (typeof arg === FUNCTION) {
 				if (arg.trope) {
 					def = arg.trope.getDefinition(def);
 				} else {
 					def.constructor = arg;
 				}
-			}if (typeof arg === 'object') {
+			}if (typeof arg === OBJECT) {
 				def.prototype = arg;
-			} else if (typeof arg === 'string') {
+			} else if (typeof arg === STRING) {
 				def.type = arg;
 			}
 			arg = stack.pop();

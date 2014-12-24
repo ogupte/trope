@@ -496,8 +496,7 @@ describe('Trope Usage', function () {
 	});
 
 	describe('Instantiation', function () {
-		var EventEmitter = Trope({
-		}, function EventEmitter () {
+		var EventEmitter = Trope(function EventEmitter () {
 			this.eventMap = {};
 		}, {
 			on: function (name, handler) {
