@@ -29,12 +29,12 @@ describe('Trope Static', function () {
 			expect(TestTropeInstance.def).to.equal(definition);
 		});
 	});
-	describe('Trope.Define([*])', function () {
+	describe('Trope.interpret([*])', function () {
 		it('should return a Trope constructor function', function () {
 			var testPrototype = {
 				someMethod: function () {}
 			};
-			var TestTrope = Trope.Define(testPrototype);
+			var TestTrope = Trope.interpret(testPrototype);
 			expect(TestTrope).to.be.a.function;
 			expect(TestTrope).to.have.property('trope');
 			var TestTropeInstance = TestTrope.trope;
@@ -224,9 +224,9 @@ describe('Trope Instance', function () {
 			expect(ChildTrope.trope.def).to.equal(definition);
 		});
 	});
-	describe('#extend([*])', function () {
+	describe('#interpretChild([*])', function () {
 		it('should return a Trope constructor function whose Trope inherits from this Trope', function () {
-			var ChildTrope = parentTrope.extend(testConstructor, testPrototype);
+			var ChildTrope = parentTrope.interpretChild(testConstructor, testPrototype);
 			expect(ChildTrope.trope.inherits).to.equal(parentTrope);
 			expect(ChildTrope.trope.constr).to.equal(testConstructor);
 			expect(ChildTrope.trope.proto).to.equal(testPrototype);
@@ -263,119 +263,22 @@ describe('Trope Usage', function () {
 				expect(NullConstructor.prototype).to.equal(NullConstructor.trope.finalProto);
 			});
 		});
-		describe('Trope.Define', function () {
+		describe('Trope.interpret', function () {
 			it('should return a Trope constructor function', function () {
-				var NullConstructor = Trope.Define(null);
+				var NullConstructor = Trope.interpret(null);
 				expect(NullConstructor).to.be.a.function;
 				expect(NullConstructor).to.have.property('prototype');
 				expect(NullConstructor.prototype).to.equal(NullConstructor.trope.finalProto);
 			});
 			describe('0 arguments: ()', function () {
 				it('should return a Trope constructor for an object with no prototype', function () {
-					var NullConstructor = Trope.Define();
+					var NullConstructor = Trope.interpret();
 					expect(NullConstructor).to.be.a.function;
 					expect(NullConstructor).to.have.property('prototype');
 					expect(NullConstructor.prototype).to.equal(NullConstructor.trope.finalProto);
 					expect(Object.getPrototypeOf(NullConstructor.trope.finalProto)).to.be.null;
 				});
 			});
-			/*describe('1 argument: (X)', function () {
-				describe('(prototype object)', function () {
-					it('should return a Trope constructor which uses the given prototype');
-				});
-				describe('(Trope definition)', function () {
-					it('should return a Trope constructor which uses the given Trope definition');
-				});
-				describe('(Trope constructor)', function () {
-					it('should return a Trope constructor which extends the given Trope');
-				});
-				describe('(native constructor)', function () {
-					it('should return a Trope constructor which uses the given constructor function');
-				});
-				describe('(type string)', function () {
-					it('should return a Trope constructor which uses the given type string');
-				});
-			});
-			describe('2 arguments: (X,Y)', function () {
-				describe('(Trope definition, prototype object)', function () {
-					it('should return a Trope constructor based on the given definition which uses the given prototype');
-				});
-				describe('(Trope definition, Trope constructor)', function () {
-					it('should return a Trope constructor based on the given Trope\'s definition where the given definition can modify');
-				});
-				describe('(Trope definition, native constructor)', function () {
-					it('should return a Trope constructor based on the given definition which uses the given constructor function');
-				});
-				describe('(Trope definition, type string)', function () {
-					it('should return a Trope constructor based on the given definition which uses the given type string');
-				});
-				describe('(Trope constructor, prototype object)', function () {
-					it('should return a Trope constructor based on the given Trope\'s definition which uses the given prototype');
-				});
-				describe('(Trope constructor, type string)', function () {
-					it('should return a Trope constructor based on the given Trope\'s definition which uses the given type string');
-				});
-				describe('(native constructor, prototype object)', function () {
-					it('should return a Trope constructor which uses the given constructor and prototype');
-				});
-				describe('(native constructor, type string)', function () {
-					it('should return a Trope constructor which uses the given constructor and type string');
-				});
-				describe('(type string, prototype object)', function () {
-					it('should return a Trope constructor which uses the given type string and prototype');
-				});
-				describe('(type string, Trope constructor)', function () {
-					it('should return a Trope constructor based on the given Trope\'s definition which uses the given type string');
-				});
-				describe('(type string, native constructor)', function () {
-					it('should return a Trope constructor which uses the given type string and constructor function');
-				});
-				describe('(null, prototype object)', function () {
-					it('should return a Trope constructor which uses the given prototype');
-				});
-				describe('(null, Trope constructor)', function () {
-					it('should return a Trope constructor which extends the given Trope');
-				});
-				describe('(null, native constructor)', function () {
-					it('should return a Trope constructor which uses the given constructor function');
-				});
-				describe('(null, type string)', function () {
-					it('should return a Trope constructor which uses the given type string');
-				});
-			});
-			describe('3 arguments: (X,Y,Z)', function () {
-				describe('(Trope definition, Trope constructor, type string)', function () {
-					it('should return a Trope constructor based on the given Trope\'s definition where the given definition can modify using the given type string');
-				});
-				describe('(Trope definition, native constructor, prototype object)', function () {
-					it('should return a Trope constructor based on the given definition which uses the given constructor function and prototype');
-				});
-				describe('(Trope definition, native constructor, type string)', function () {
-					it('should return a Trope constructor based on the given definition which uses the given constructor function and type string');
-				});
-				describe('(Trope definition, prototype object, native constructor)', function () {
-					it('should return a Trope constructor based on the given definition which uses the given constructor function and prototype');
-				});
-				describe('(Trope definition, prototype object, type string)', function () {
-					it('should return a Trope constructor based on the given definition which uses the given prototype and type string');
-				});
-				describe('(Trope definition, type string, Trope constructor)', function () {
-					it('should return a Trope constructor based on the given Trope\'s definition where the given definition can modify using the given type string');
-				});
-				describe('(Trope definition, type string, native constructor)', function () {
-					it('should return a Trope constructor based on the given definition which uses the given constructor function and type string');
-				});
-				describe('(Trope definition, type string, prototype object)', function () {
-					it('should return a Trope constructor based on the given definition which uses the given prototype and type string');
-				});
-				describe('(type string, native constructor, prototype object)', function () {
-					it('should return a Trope constructor which uses the given type string, constructor function, and prototype');
-				});
-				// other combinations are possible but would be silly to use
-			});
-			describe('more arguments: (X,Y,Z,…)', function () {
-				it('should only recognize the first three arguments');
-			});*/
 		});
 		describe('chained from another Trope (trope.createChildTrope)', function () {
 			it('should return a Trope constructor which inherits from the chained Trope object', function () {
@@ -809,7 +712,7 @@ describe('Trope Usage', function () {
 			});
 		});
 		describe('multiple', function () {
-			var EventEmitter = Trope.draft({
+			var EventEmitter = Trope({
 				privacy: true
 			}, function EventEmitter () {
 				this.eventMap = {};
@@ -835,7 +738,7 @@ describe('Trope Usage', function () {
 				}
 			});
 
-			var Logger = Trope.draft({
+			var Logger = Trope({
 				privacy: true
 			}, function Logger (prefix) {
 				this.prefix = prefix;
@@ -847,7 +750,7 @@ describe('Trope Usage', function () {
 
 			it('should support multiple inheritance by proxying parents into the current inheritance chain', function (done) {
 				try {
-					var LoggingEventedDog = Trope.Define(EventEmitter).extend(Logger).extend(Dog).extend({
+					var LoggingEventedDog = Trope(EventEmitter).turn(Logger).turn(Dog).turn({
 						constructor: function LoggingEventedDog(name) {
 							this.super.as(EventEmitter)();
 							this.super.as(Logger)(name);
@@ -867,7 +770,7 @@ describe('Trope Usage', function () {
 			});
 
 			it('should have Trope.instanceOf work for Tropes using multiple inheritance', function () {
-				var LoggingEventedDog = Trope.Define(EventEmitter).extend(Logger).extend(Dog).extend({
+				var LoggingEventedDog = Trope(EventEmitter).turn(Logger).turn(Dog).turn({
 					constructor: function LoggingEventedDog(name) {
 						this.super.as(EventEmitter)();
 						this.super.as(Logger)(name);
@@ -1020,7 +923,6 @@ describe('Trope Usage', function () {
 						},
 						prototype: {
 							getLongName: function () {
-								// expect(this.super).to.not.exist;
 								expect(this.super()).to.equal('Organic Agents');
 								return 'Organism';
 							}
@@ -1672,13 +1574,14 @@ describe('Trope Usage', function () {
 		});
 
 		it('should take the arguments passed into the main constructor by default', function () {
-			var EventedType = Trope({
+			var EventedType = Trope(EventEmitter, {
+				__TROPEDEF__: true,
 				autoinit: true,
 				constructor: function (eventMap) {
 					this.eventMap = eventMap;
 					this.super();
 				}
-			}, EventEmitter).chain({
+			}).chain({
 				go: function (val) {
 					this.emit('go', val);
 				}
@@ -1700,7 +1603,8 @@ describe('Trope Usage', function () {
 		});
 
 		it('should take no arguments if set to a special new function just for initializing instead of just setting it to true', function () {
-			var EventedType = Trope({
+			var EventedType = Trope(EventEmitter, {
+				__TROPEDEF__: true,
 				autoinit: function () {
 					this.eventMap = {};
 					this.super();
@@ -1708,7 +1612,7 @@ describe('Trope Usage', function () {
 				constructor: function (eventMap) {
 					this.eventMap = eventMap;
 				}
-			}, EventEmitter).chain({
+			}).chain({
 				go: function (val) {
 					this.emit('go', val);
 				}
@@ -1729,13 +1633,14 @@ describe('Trope Usage', function () {
 		});
 
 		it('should take no arguments if set to an array of default arguments', function () {
-			var EventedType = Trope({
+			var EventedType = Trope(EventEmitter, {
+				__TROPEDEF__: true,
 				autoinit: [{}],
 				constructor: function (eventMap) {
 					this.eventMap = eventMap;
 					this.super();
 				}
-			}, EventEmitter).chain({
+			}).chain({
 				go: function (val) {
 					this.emit('go', val);
 				}
@@ -1892,7 +1797,7 @@ describe('Trope Usage', function () {
 		describe('with inheritance', function () {
 			it('should be able to inherit from a Trope defined with selfish without being selfish', function () {
 				// this test depends on the previous test to run first
-				var Stream = EventEmitter.extend({
+				var Stream = EventEmitter.turn({
 					write: function (data) {
 						this.emit('write', data);
 					},
@@ -2086,7 +1991,7 @@ describe('Trope Usage', function () {
 				expect(pumbaa.getLongName()).to.equal('Animalia');
 
 				// Chaining prototypes
-				var Mammal = Animal.extend({
+				var Mammal = Animal.turn({
 					// constructor: function () {},
 					getLongName: function () {
 						return this.super() + ' Mammalia';
@@ -2100,7 +2005,7 @@ describe('Trope Usage', function () {
 
 				// Constructor functions
 
-				var Carnivore = Mammal.extend({
+				var Carnivore = Mammal.turn({
 					constructor: function (name) {
 						this.name = name;
 					},
@@ -2116,7 +2021,7 @@ describe('Trope Usage', function () {
 
 				// Super functions
 
-				var Canine = Carnivore.extend({
+				var Canine = Carnivore.turn({
 					constructor: function (name) {
 						this.super(name.toUpperCase());
 					},
@@ -2133,7 +2038,7 @@ describe('Trope Usage', function () {
 
 				// Private members
 
-				var Dog = Canine.extend({ privacy: true }, {
+				var Dog = Canine.turn({ privacy: true }, {
 					constructor: function (name) {
 						this.super(name);
 						this.secret = 'shhhh...'; // this references the object's private state
@@ -2158,7 +2063,7 @@ describe('Trope Usage', function () {
 
 				// Protected members for inheriting Tropes
 
-				var Weiner = Dog.extend({ privacy: true }, {
+				var Weiner = Dog.turn({ privacy: true }, {
 					constructor: function (name) {
 						this.super(name);
 						this.secret += 'w00f!';
@@ -2217,9 +2122,9 @@ describe('Trope Usage', function () {
 
 				// Combine all the above into 1 Trope
 				var LoggingEventedDog = Trope(EventEmitter)
-					.extend(Logger)
-					.extend(Dog)
-					.extend({
+					.turn(Logger)
+					.turn(Dog)
+					.turn({
 						constructor: function (name) {
 							this.super.as(Dog)(name);
 							this.super.as(Logger)({ prefix: name });

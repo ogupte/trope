@@ -101,6 +101,17 @@ function applyAliases(object, aliases, target) {
 	}
 }
 
+function appendCapitalized(aliases) {
+	var originalLength = aliases.length;
+	var i;
+	var alias;
+	for (i=0; i<originalLength; i++) {
+		alias = aliases[i];
+		aliases.push(alias.charAt(0).toUpperCase() + alias.substr(1));
+	}
+	return aliases;
+}
+
 /*
  #######
     #    #####   ####  #####  ######
@@ -112,8 +123,11 @@ function applyAliases(object, aliases, target) {
 
 */
 var Trope = (function () {
+	function tropeDefaultDefinition () {
+		return module.exports.defaultDefinition.apply(module.exports, arguments);
+	}
 	function tropeDefaultAction () {
-		return module.exports['default'].apply(module.exports, arguments);
+		return module.exports.defaultAction.apply(module.exports, arguments);
 	}
 	module.exports = tropeDefaultAction;
 
@@ -132,36 +146,17 @@ var Trope = (function () {
 	var AUTOINIT_CONSTRUCTOR = 0x4d414943;
 	var AUTOINIT_INIT_FUNC = 0x4d414949;
 	var AUTOINIT_ARGS = 0x4d414941;
-	var DEFINE_ALIAS = (function (aliases) {
-		var originalLength = aliases.length;
-		var i;
-		var alias;
-		for (i=0; i<originalLength; i++) {
-			alias = aliases[i];
-			aliases.push(alias.charAt(0).toUpperCase() + alias.substr(1));
-		}
-		return aliases;
-	} ([
+	var DEFINE_ALIAS = appendCapitalized([
 		'class',
-		'proto',
-		'alter',
-		'alt',
-		'turn',
 		'extend',
-		'ext',
-		'modify',
-		'mod',
+		'define'
+	]);
+	var INTERPRET_ALIAS = appendCapitalized([
+		'proto',
+		'turn',
 		'link',
-		'chain',
-		'draft',
-		'denote',
-		'outline',
-		'cast',
-		'exhibit',
-		'model',
-		'compound',
-		'enhance'
-	]));
+		'chain'
+	]);
 
 	function ensureIsATrope (trope) {
 		if (!(trope instanceof Trope)) {
@@ -564,7 +559,8 @@ var Trope = (function () {
 				constr.create = function create () {
 					return constr.apply(null, arguments);
 				};
-				applyAliases(constr, DEFINE_ALIAS, trope.extend.bind(trope));
+				applyAliases(constr, INTERPRET_ALIAS, trope.interpretChild.bind(trope));
+				applyAliases(constr, DEFINE_ALIAS, trope.defineChild.bind(trope));
 				return constr;
 			}(trope.buildProxyConstructor()));
 		},
@@ -703,12 +699,10 @@ var Trope = (function () {
 			var childTrope = trope.createChildTrope(def);
 			return childTrope.getConstructor();
 		},
-		extend: function () {
+		interpretChild: function () {
 			var trope = this;
 			var args = arguments;
-			var arity = args.length;
-			var supportedArityHandler = arityMap[arity] || arityMap['?'];
-			var def = supportedArityHandler.apply(arityMap, args);
+			var def = tropeDefaultDefinition.apply(null, args);
 			return trope.defineChild(def);
 		},
 		getDefinition: function (override) {
@@ -737,116 +731,6 @@ var Trope = (function () {
 	}
 	set('define', define);
 
-	// possibly implement this as a state machine to get rid of useless combinations
-	var arityMap = {
-		'0': function () {},
-		'1': function (arg0) {
-			var arg0Type = typeof arg0;
-			var def;
-			if (arg0Type === OBJECT) {
-				if (arg0 !== null && arg0.__TROPEDEF__) {
-					def = arg0;
-				} else {
-					def = { prototype: arg0 };
-				}
-			} else if (arg0Type === FUNCTION) {
-				if (arg0.trope) {
-					def = arg0.trope.getDefinition();
-				} else {
-					def = { constructor: arg0 };
-				}
-			} else if (arg0Type === STRING) {
-				def = { type: arg0 };
-			}
-			return def;
-		},
-		'2': function (arg0, arg1) {
-			var arg0Type = typeof arg0;
-			var arg1Type = typeof arg1;
-			var def;
-			if (arg0Type === OBJECT && arg0 !== null) {
-				def = arg0;
-			} else if (arg0Type === FUNCTION) {
-				if (arg0.trope) {
-					def = arg0.trope.getDefinition();
-				} else {
-					def = { constructor: arg0 };
-				}
-			} else if (arg0Type === STRING) {
-				def = { type: arg0 };
-			} else {
-				def = {};
-			}
-			if (arg1Type === OBJECT) {
-				def.prototype = arg1;
-			} else if (arg1Type === FUNCTION) {
-				if (arg1.trope) {
-					def = mix(def, arg1.trope.getDefinition());
-				} else {
-					def.constructor = arg1;
-				}
-			} else if (arg1Type === STRING) {
-				def.type = arg1;
-			}
-			return def;
-		},
-		'3': function (arg0, arg1, arg2) {
-			var arg0Type = typeof arg0;
-			var arg1Type = typeof arg1;
-			var arg2Type = typeof arg2;
-			var def;
-			if (arg0Type === OBJECT && arg0 !== null) {
-				def = arg0;
-			} else if (arg0Type === FUNCTION) {
-				if (arg0.trope) {
-					def = arg0.trope.getDefinition();
-				} else {
-					def = { constructor: arg0 };
-				}
-			} else if (arg0Type === STRING) {
-				def = { type: arg0 };
-			} else {
-				def = {};
-			}
-			if (arg1Type === OBJECT) {
-				def.prototype = arg1;
-			} else if (arg1Type === FUNCTION) {
-				if (arg1.trope) {
-					def = mix(def, arg1.trope.getDefinition());
-				} else {
-					def.constructor = arg1;
-				}
-			} else if (arg1Type === STRING) {
-				def.type = arg1;
-			}
-			if (arg2Type === OBJECT) {
-				def.prototype = arg2;
-			} else if (arg2Type === FUNCTION) {
-				if (arg2.trope) {
-					def = mix(def, arg2.trope.getDefinition());
-				} else {
-					def.constructor = arg2;
-				}
-			} else if (arg2Type === STRING) {
-				def.type = arg2;
-			}
-			return def;
-		},
-		'?': function () {
-			return this['3'].apply(this, arguments);
-		}
-	};
-
-	function Define () {
-		var args = arguments;
-		var arity = args.length;
-		var supportedArityHandler = arityMap[arity] || arityMap['?'];
-		var def = supportedArityHandler.apply(arityMap, args);
-		return define(def);
-	}
-	set('Define', Define);
-	set('default', Define);
-
 	function instanceOf (arg0, arg1) {
 		if (arguments.length !== 2) {
 			throw new Error('Trope.instanceOf only supports 2 arguments');
@@ -869,7 +753,7 @@ var Trope = (function () {
 	}
 	set('instanceOf', instanceOf);
 
-	function interpret () {
+	function interpretDefinition () {
 		var args = arguments;
 		var i;
 		var stack = [];
@@ -878,6 +762,7 @@ var Trope = (function () {
 			stack.push(args[i]);
 		}
 		var arg = stack.pop();
+		var isProtoDefined = false;
 		while (arg) {
 			if (typeof arg === FUNCTION) {
 				if (arg.trope) {
@@ -886,17 +771,37 @@ var Trope = (function () {
 					def.constructor = arg;
 				}
 			}if (typeof arg === OBJECT) {
-				def.prototype = arg;
+				if (isProtoDefined || arg.__TROPEDEF__) {
+					def = mix(def, arg);
+				} else {
+					def.prototype = arg;
+					isProtoDefined = true;
+				}
 			} else if (typeof arg === STRING) {
 				def.type = arg;
 			}
 			arg = stack.pop();
 		}
+		return def;
+	}
+	set('defaultDefinition', interpretDefinition);
+
+	function interpret () {
+		var def;
+		var args = arguments;
+		if (args.length === 1) {
+			if (typeof args[0] === FUNCTION && args[0].trope) {
+				return args[0];
+			}
+		}
+		def = interpretDefinition.apply(null, args);
 		return define(def);
 	}
 	set('interpret', interpret);
+	set('defaultAction', interpret);
 
-	applyAliases(module.exports, DEFINE_ALIAS, Define);
+	applyAliases(module.exports, INTERPRET_ALIAS, interpret);
+	applyAliases(module.exports, DEFINE_ALIAS, define);
 }());
 //END trope.js
 }));
