@@ -789,9 +789,13 @@ var Trope = (function () {
 	function interpret () {
 		var def;
 		var args = arguments;
+		var arg0;
 		if (args.length === 1) {
-			if (typeof args[0] === FUNCTION && args[0].trope) {
-				return args[0];
+			arg0 = args[0];
+			if (typeof arg0 === FUNCTION && arg0.trope) {
+				return arg0;
+			} else if (arg0 === null) {
+				return define(null);
 			}
 		}
 		def = interpretDefinition.apply(null, args);
