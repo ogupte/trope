@@ -413,6 +413,10 @@ var Trope = (function () {
 			}
 		}());
 
+		//extends is an alias for inherits
+		if (def.extends && !def.inherits) {
+			def.inherits = def.extends;
+		}
 		// trope.inherits always a Trope object or null
 		trope.inherits = (function () {
 			if (def.inherits) {
