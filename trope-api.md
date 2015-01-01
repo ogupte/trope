@@ -27,57 +27,54 @@ Trope.define(definitionObject)
 The only argument is the definition object, which can be used to pass in any trope option or configuration:
 
 <a id="define-option-autoinit"></a>
-- ###### `autoinit` [boolean | Array | function]</div>
+- `autoinit` [boolean | Array | function]</div><br />
 Normally, if extended, any parent tropes' [`constructor`](#define-option-constructor)/[`init`](#define-option-init) function have to be explicitly invoked with `this.super`, but this option will make sure it's invoked before the inheriting constructor executes. If set to `true`, it will be passed the same arguments that are passed to the inheriting trope. If set to an `Array`, it will always apply the array as the arguments to the [`constructor`](#define-option-constructor)/[`init`](#define-option-init) function. If passed a `function`, it will be executed instead of the normal [`constructor`](#define-option-constructor)/[`init`](#define-option-init) function when inherited.
 
 <a id="define-option-constructor"></a>
-- ###### `constructor` [function]
-function used to initialize new objects. If `prototype` isn't specified, it will use the prototype property of this function. This is useful for converting native JS constructors into tropes.
-<br />
+- `constructor` [function]<br />
+function used to initialize new objects. If `prototype` isn't specified, it will use the prototype property of this function. This is useful for converting native JS constructors into tropes.<br />
 _alias:_ [`init`](#define-option-init)
 
 <a id="define-option-extends"></a>
-- ###### `extends` [Trope/object/function]
+- `extends` [Trope/object/function]<br />
 _alias:_ [`inherits`](#define-option-inherits)
 
 <a id="define-option-inherits"></a>
-- ###### `inherits` [Trope/object/function]
-a Trope, object, or constructor function which the newly defined trope will inherit from. If it's not a trope, it will be converted into a trope first.
-<br />
+- `inherits` [Trope/object/function]<br />
+a Trope, object, or constructor function which the newly defined trope will inherit from. If it's not a trope, it will be converted into a trope first.<br />
 _alias:_ [`extends`](#define-option-extends)
 
 <a id="define-option-init"></a>
-- ###### `init` [function]
+- `init` [function]<br />
 _alias:_ [`constructor`](#define-option-constructor)
 
 <a id="define-option-instance"></a>
-- ###### `instance` [string]
+- `instance` [string]<br />
 string passed in will be used as the instance object name, useful for debugging and inspecting objects in a console. If not specified, the instance name will be the type name with a sub 'i' appended to it.
 
 <a id="define-option-privacy"></a>
-- ###### `privacy` [boolean]
+- `privacy` [boolean]<br />
 flag which defines the trope in _privacy_ mode.
 
 <a id="define-option-private"></a>
-- ###### `private` [object]
+- `private` [object]<br />
 the function properties of this object that will be made available to the trope's private context. Using this feature will automatically set the [`privacy`](#define-option-privacy) setting to `true`.
 
 <a id="define-option-prototype"></a>
-- ###### `prototype` [object]
-an object used as the prototype for the definition. All function properties of this object will be exposed as methods of created objects. If not specified, it will use the prototype property of the [`constructor`](#define-option-constructor) function.
-<br />
+- `prototype` [object]<br />
+an object used as the prototype for the definition. All function properties of this object will be exposed as methods of created objects. If not specified, it will use the prototype property of the [`constructor`](#define-option-constructor) function.<br />
 _alias:_ [`public`](#define-option-public)
 
 <a id="define-option-public"></a>
-- ###### `public` [object]
+- `public` [object]<br />
 _alias:_ [`prototype`](#define-option-prototype)
 
 <a id="define-option-selfish"></a>
-- ###### `selfish` [boolean]</div>
+- `selfish` [boolean]<br />
 boolean flag to enable the trope to be defined in _selfish_ mode. A trope defined in selfish mode will have the object's `this` reference bound to each function in the definition as the first parameter (like [Python classes](https://docs.python.org/2/tutorial/classes.html))
 
 <a id="define-option-type"></a>
-- ###### `type` [string]
+- `type` [string]<br />
 the name of the Trope which can be useful when debugging. By default, the type name is the constructor function name if it exists, or 'Object'. If this Trope inherits from another, the default type name will be the same as the parent with a sub 'x' (for eXtended) appended to it.
 
 #### Description
