@@ -1,0 +1,31 @@
+{
+  "name": "trope",
+  "main": "trope.js",
+  "version": "1.0.1",
+  "description": "Trope is a simple interface for JavaScript inheritance that provides some extra, useful capabilities.",
+  "moduleType": [
+    "globals",
+    "node"
+  ],
+  "keywords": [
+    "prototype",
+    "super",
+    "class",
+    "extend",
+    "private",
+    "multiple",
+    "inheritance"
+  ],
+  "authors": [
+    "Oliver Gupte"
+  ],
+  "homepage": "https://github.com/ogupte/trope",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
