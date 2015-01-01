@@ -291,16 +291,17 @@ quadrilateral.getSides(); // 4
 install with `npm`
 
     npm install --save trope
-<!--
+
 ### Browser
 install with `bower`
 
     bower install --save trope
-*or* use directly as a script
+
+*or* download and use directly as a script
 ```html
 <script src="trope.js"></script>
 ```
--->
+
 ### git
 clone git reposity
 
