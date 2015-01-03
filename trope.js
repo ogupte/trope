@@ -343,15 +343,16 @@ var Trope = (function () {
 				return undefined;
 			}
 		},
-		getConstructor: function () {
+		getConstructor: function (surrogateConstructor) {
 			var self = this;
+			var constr = surrogateConstructor || self.trope.constr;
 			return function () {
 				var args = arguments;
 				self.callAsConstructor(function (ctx) {
 					if (self.trope.isSelfish) { // if the defining trope is is 'selfish' mode
-						self.trope.constr.bind(ctx, self.getTargetContext()).apply(ctx, args); // pass in the target context as the first argument to the constructor, then apply
+						constr.bind(ctx, self.getTargetContext()).apply(ctx, args); // pass in the target context as the first argument to the constructor, then apply
 					} else {
-						self.trope.constr.apply(ctx, args);// otherwise just apply the supplied arguments
+						constr.apply(ctx, args);// otherwise just apply the supplied arguments
 					}
 				});
 			};
@@ -620,9 +621,7 @@ var Trope = (function () {
 					} else if (autoinitConfig.mode === AUTOINIT_ARGS) {
 						executionContext.as(autoinitTrope).getConstructor().apply(null, autoinitConfig.args);
 					} else if (autoinitConfig.mode === AUTOINIT_INIT_FUNC) {
-						executionContext.as(autoinitTrope).callAsConstructor(function (ctx) {
-							autoinitConfig.initFunc.apply(ctx, args);
-						});
+						executionContext.as(autoinitTrope).getConstructor(autoinitConfig.initFunc).apply(null, args);
 					}
 				});
 				// generate an appropriate constructor from the execution context and apply with the supplied arguments
