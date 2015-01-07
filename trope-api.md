@@ -218,6 +218,7 @@ Using an actual Trope object like this is only useful when extending or testing 
 
 *Note: `(new Trope.Trope(definitionObject)).getConstructor()` is equivalent to `Trope.define(definitionObject)`.*
 
+<a id="factory-api"></a>
 ## Trope Constructor/Factory API
 --------------------------------
 <a id="factory-define"></a>
@@ -267,7 +268,11 @@ The `trope` property is a reference to the Trope instance associated with the co
 
 #### Syntax
 ```javascript
+Factory.trope // this is the object reference
 Factory.trope instanceof Trope.Trope // true
 ```
+
+#### Description
+The `trope` property is only useful in very specific situations, usually only when extending the library.
 
 --------------------------------
