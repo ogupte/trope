@@ -1,22 +1,18 @@
 {
   "name": "trope",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Trope is a simple interface for JavaScript inheritance that provides some extra, useful capabilities.",
-  "main": "trope.js",
-  "scripts": {
-    "test": "grunt test"
+  "author": {
+    "name": "Oliver Gupte",
+    "url": "https://www.linkedin.com/in/olivergupte/",
   },
-  "author": "Oliver Gupte",
   "homepage": "https://github.com/ogupte/trope",
   "license": "MIT",
-  "devDependencies": {
-    "async": "^0.9.0",
-    "blanket": "^1.1.6",
-    "chai": "^1.9.1",
-    "grunt": "^0.4.5",
-    "grunt-simple-mocha": "^0.4.0",
-    "mocha": "^1.21.0"
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/ogupte/trope.git"
   },
+  "bugs": "https://github.com/ogupte/trope/issues",
   "keywords": [
     "prototype",
     "super",
@@ -26,6 +22,18 @@
     "multiple",
     "inheritance"
   ],
+  "main": "trope.js",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "devDependencies": {
+    "async": "^0.9.0",
+    "blanket": "^1.1.6",
+    "chai": "^1.9.1",
+    "grunt": "^0.4.5",
+    "grunt-simple-mocha": "^0.4.0",
+    "mocha": "^1.21.0"
+  },
   "config": {
     "blanket": {
       "pattern": "trope.js"
