@@ -5,7 +5,6 @@ The trope module `Trope` is a function with additional methods.
 * [`Trope.define()`](#module-define) - verbose Trope definition
 * [`Trope.interpret()`](#module-interpret) - interprets arguments to build definition
 * [`Trope.Trope`](#module-trope-constructor) - Trope object constructor
-<!--* [`Trope.set()`](#module-section-trope-set) - extends Trope-->
 
 ## [Trope Constructor/Factory API](#factory-api)
 A Trope Constructor/Factory is a function with additional methods and properties.
@@ -199,13 +198,8 @@ new Trope.Trope(definitionObject);
 
 #### Description
 Using an actual Trope object like this is only useful when extending or testing Trope. [`Trope.define()`](#module-define) is descriptive enough to handle most needs.
-<br/>
+
 *Note: `(new Trope.Trope(definitionObject)).getConstructor()` is equivalent to `Trope.define(definitionObject)`.*
---------------------------------
-<!--
-<a id="module-section-trope-set"></a>
-### `Trope.set()`
--->
 
 ## Trope Constructor/Factory API
 --------------------------------
@@ -249,21 +243,3 @@ This value can be an `object`, a `function`, a `string`, or another Trope. There
 This is the easiest way to extend a trope since it will inherit from the top-level trope has a minimalist interface. [See examples](https://github.com/ogupte/trope#inheritance)
 
 --------------------------------
-<!--
-<a id="factory-define"></a>
-### `define`
-#### Summary
-...
-
-#### Syntax
-```javascript
-Factory.define(definitionObject)
-```
-#### Parameters
-##### param0
-...
-
-#### Description
-...
---------------------------------
--->
