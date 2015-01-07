@@ -3,14 +3,31 @@ The trope module `Trope` is a function with additional methods.
 
 * [`Trope()`](#module-trope) - default action, alias of [`Trope.interpret()`](#interpret)
 * [`Trope.define()`](#module-define) - verbose Trope definition
+  * _aliases_:
+  * [`Trope.class`](#module-define)
+  * [`Trope.extend`](#module-define)
 * [`Trope.interpret()`](#module-interpret) - interprets arguments to build definition
+  * _aliases_:
+  * [`Trope.proto`](#module-interpret)
+  * [`Trope.turn`](#module-interpret)
+  * [`Trope.link`](#module-interpret)
+  * [`Trope.chain`](#module-interpret)
 * [`Trope.Trope`](#module-trope-constructor) - Trope object constructor
 
 ### [Trope Constructor/Factory API](#factory-api)
 A Trope Constructor/Factory is a function with additional methods and properties.
 
 * [`Factory.define`](#factory-define)
+  * _aliases_:
+  * [`Factory.class`](#factory-define)
+  * [`Factory.extend`](#factory-define)
 * [`Factory.interpret`](#factory-interpret)
+  * _aliases_:
+  * [`Factory.proto`](#factory-interpret)
+  * [`Factory.turn`](#factory-interpret)
+  * [`Factory.link`](#factory-interpret)
+  * [`Factory.chain`](#factory-interpret)
+* [`Factory.trope`](#factory-trope)
 
 <a id="module-api"></a>
 ## Trope API
@@ -241,5 +258,16 @@ This value can be an `object`, a `function`, a `string`, or another Trope. There
 
 #### Description
 This is the easiest way to extend a trope since it will inherit from the top-level trope has a minimalist interface. [See examples](https://github.com/ogupte/trope#inheritance)
+
+--------------------------------
+<a id="factory-trope"></a>
+### `Factory.trope`
+#### Summary
+The `trope` property is a reference to the Trope instance associated with the constructor/factory. A Trope instance is created with the [Trope.Trope](#module-trope-constructor) constructor.
+
+#### Syntax
+```javascript
+Factory.trope instanceof Trope.Trope // true
+```
 
 --------------------------------
