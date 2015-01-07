@@ -268,14 +268,12 @@ Trope takes a slightly unique approach to implementing privacy in objects. Exist
 Normally, objects will have a prototype chain similar to below where the only reference to the object is the the HEAD of the chain, in this case `{public}` where the object properties can be referenced.
 ```
    |
-  \|/
    V
 {public} -> {proto} -> {object} -> null
 ```
 Trope creates another acting head to this chain (`{private}`) which can only be accessed by methods inside the definition and not from any outside context.
 ```
                 |
-               \|/
                 V
 {private} -> {public} -> {proto} -> {object} -> null
 ```
