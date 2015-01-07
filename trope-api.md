@@ -1,4 +1,4 @@
-## [Trope API](#module-api)
+### [Trope API](#module-api)
 The trope module `Trope` is a function with additional methods.
 
 * [`Trope()`](#module-trope) - default action, alias of [`Trope.interpret()`](#interpret)
@@ -6,11 +6,11 @@ The trope module `Trope` is a function with additional methods.
 * [`Trope.interpret()`](#module-interpret) - interprets arguments to build definition
 * [`Trope.Trope`](#module-trope-constructor) - Trope object constructor
 
-## [Trope Constructor/Factory API](#factory-api)
+### [Trope Constructor/Factory API](#factory-api)
 A Trope Constructor/Factory is a function with additional methods and properties.
 
-* [`define`](#factory-define)
-* [`interpret`](#factory-interpret)
+* [`Factory.define`](#factory-define)
+* [`Factory.interpret`](#factory-interpret)
 
 <a id="module-api"></a>
 ## Trope API
@@ -225,7 +225,7 @@ This function is an easy way to do inheritance since a child trope can be chaine
 
 --------------------------------
 <a id="factory-interpret"></a>
-### `interpret`
+### `Factory.interpret`
 _alias:_ `proto`,`turn`,`link`,`chain`
 
 #### Summary
