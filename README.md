@@ -1,9 +1,11 @@
 # trope.js
+<a id="overview"></a>
 ## Overview
 Trope is a simple interface for JavaScript inheritance that provides some extra, useful capabilities. At the core of this tool are prototypes which are used to maintain [private state](https://github.com/ogupte/trope#private-properties), allow access to [super functions](https://github.com/ogupte/trope#inheritance), and create objects with [multiple inheritance](https://github.com/ogupte/trope#multiple-inheritance). It's easy to start integrating with most projects since [native JS](https://github.com/ogupte/trope#native-js-compatibility) constructors, object prototypes and ES6 classes are already valid Trope definitions.
 
 ### [API Documentation](https://github.com/ogupte/trope/blob/master/trope-api.md)
 
+<a id="features"></a>
 ## Features
 * [Simplified object inheritance](https://github.com/ogupte/trope#inheritance)
 * [Private object state](https://github.com/ogupte/trope#description-private-members)
@@ -11,14 +13,16 @@ Trope is a simple interface for JavaScript inheritance that provides some extra,
 * [Multiple inheritance](https://github.com/ogupte/trope#description-multiple-inheritance)
 * [Compatible with native JS](https://github.com/ogupte/trope#native-js-compatibility)
 
-### Examples<a id="examples"></a>
+<a id="examples"></a>
+### Examples
 * [Object factories](https://github.com/ogupte/trope#object-factories)
 * [Private properties](https://github.com/ogupte/trope#private-properties)
 * [Inheritance](https://github.com/ogupte/trope#inheritance)
 * [Multiple Inheritance](https://github.com/ogupte/trope#multiple-inheritance)
 * [Native JS Compatibility](https://github.com/ogupte/trope#native-js-compatibility)
 
-#### Object factories<a id="object-factories"></a>
+<a id="object-factories"></a>
+#### Object factories
 A simple object factory.
 ```javascript
 var Greeter = Trope({
@@ -58,7 +62,8 @@ greeter = Greeter('Bertrand');
 greeter = new Greeter('Bertrand');
 ```
 
-#### Private properties<a id="private-properties"></a>
+<a id="private-properties"></a>
+#### Private properties
 `privacy` mode can be enabled to prevent object properties from being accessed by an outside context.
 ```javascript
 var Greeter = Trope({ privacy: true }, function (name) {
@@ -97,7 +102,8 @@ greeter.sayHello(); // 'Hello, Bertrand!'
 ```
 See how [private properties](https://github.com/ogupte/trope#description-private-members) are implemented in Trope.
 
-#### Inheritance<a id="inheritance"></a>
+<a id="inheritance"></a>
+#### Inheritance
 Start with an existing definition
 ```javascript
 var Animal = Trope({
@@ -132,7 +138,8 @@ mammal instanceof Animal;
 
 See how [this.super](https://github.com/ogupte/trope#description-super) is implemented in Trope.
 
-##### Multiple Inheritance<a id="multiple-inheritance"></a>
+<a id="multiple-inheritance"></a>
+##### Multiple Inheritance
 First we define two unrelated Tropes `Logger` and `EventEmitter`.
 ```javascript
 var Logger = Trope({
@@ -187,7 +194,8 @@ var Cat = Trope(function (name) { // init function
 var cat = Cat.create('Raja');
 cat.vocalize(); // 'Meow!'
 ```
-<a id="LoggingEventedCat"></a>Now inherit from `Logger`, `EventEmitter`, and `Cat` while passing in a new definitiong to create something completely different.
+<a id="LoggingEventedCat"></a>
+Now inherit from `Logger`, `EventEmitter`, and `Cat` while passing in a new definitiong to create something completely different.
 ```javascript
 var LoggingEventedCat = Trope(Logger).
     turn(EventEmitter).
@@ -212,7 +220,8 @@ Yes, defining a `LoggingEventedCat` is entirely possible in Trope, however the u
 
 See how [multiple inheritance](https://github.com/ogupte/trope#description-multiple-inheritance) and [this.super](https://github.com/ogupte/trope#description-super) are implemented in Trope.
 
-#### Native JS Compatibility<a id="native-js-compatibility"></a>
+<a id="native-js-compatibility"></a>
+#### Native JS Compatibility
 Trope is completely compatibile with native JS because JavaScript constructors are valid Trope definitions! This makes it easy to start using it without having to modify an existing code base.
 ```javascript
 // Native JS constructor Shape
@@ -252,7 +261,8 @@ I know that OO libs are somewhat of a...well [trope](http://en.wiktionary.org/wi
 Yes those are all great abstractions (except maybe gonads), and you should use each of them where appropriate. Trope doesn't claim to follow the one true paradigm, but it does make it simple to quickly code up object factories that play nice with native JS, use inheritance, respect private members, call overloaded functions, and do multiple inheritance.
 
 ## Feature Details
-### Private object state<a id="description-private-members"></a>
+<a id="description-private-members"></a>
+### Private object state
 Trope takes a slightly unique approach to implementing privacy in objects. Existing libraries and patterns mostly use logic wrapped in a closure to prevent external access. Trope combines this with access to an exclusive part of the prototype chain to maintain private state with hidden properties on the created object.
 
 Normally, objects will have a prototype chain similar to below where the only reference to the object is the the HEAD of the chain, in this case `{public}` where the object properties can be referenced.
@@ -271,12 +281,14 @@ Trope creates another acting head to this chain (`{private}`) which can only be 
 ```
 The result is an object with real private members rather than just some private state on an object defined in a closure. It may also give inheriting definitions access to this private context, elevating these members to a *protected* status. [see example](https://github.com/ogupte/trope#private-properties).
 
-### Access to Super Methods<a id="description-super"></a>
+<a id="description-super"></a>
+### Access to Super Methods
 Calling super functions in native JS usually involves code like `SuperName.prototype.methodName.call(this, arg1, ...)`. With Trope, `this.super()` is smart enough to know which is the correct super function of the currently executing context. This makes your code a lot easier to read and write. It also allows the developer to create new links to the middle of inheritance chains without having to modify references when calling super methods. [see example](https://github.com/ogupte/trope#inheritance).
 
 When inheriting from many different parents, you can reference any of them with `this.super.as` allowing you to call masked functions that are not members of the immediate parent. [see example](https://github.com/ogupte/trope#multiple-inheritance).
 
-### Multiple Inheritance<a id="description-multiple-inheritance"></a>
+<a id="description-multiple-inheritance"></a>
+### Multiple Inheritance
 Multiple Inheritance is not a feature of the JavaScript language, which is a good thing! The single inheritance restriction eliminates a lot of the complexity and ambiguity involved with allowing objects to inherit from various unrelated parents. Also multiple inheritance is not necessary, and a talented programmer could avoid these issues by not using multiple inheritance altogether.
 
 Still, there is sometimes a desire to inherit behavior from various unrelated objects in certain cases. The solution to this problem in JavaScript often involves using traits, mixins, the jquery or underscore `extend` functions, or even the crude `for..in` loop to produce an aggregate object with a union of properties. Problems that often occur with these approaches include information loss about the kind of object being inherited, lost references/errors when collisions occur, and prototype chain pollution. Some libraries have very sophisticated techniques for overcoming these issues, but I feel it's easier to embrace prototypes rather than fight them.
