@@ -789,6 +789,34 @@ describe('Trope Usage', function () {
 				expect(Trope.instanceOf(loggingEventedDog, Animal)).to.be.true;
 				expect(Trope.instanceOf(loggingEventedDog, Organism)).to.be.true;
 			});
+			
+			it('should support multiple inheritance by passing an array of tropes into definition', function (done) {
+				try {
+					var LoggingEventedDog = Trope.define({
+						inherits: [EventEmitter, Logger, Dog],
+						constructor: function LoggingEventedDog (name) {
+							this.super.as(EventEmitter)();
+							this.super.as(Logger)(name);
+							this.super.as(Dog)(name);
+						}
+					});
+					var loggingEventedDog = new LoggingEventedDog('Pumbaa');
+					loggingEventedDog.on('log', function (msg) {
+						expect(msg).to.equal('w000f!!');
+						done();
+					});
+					expect(loggingEventedDog.getLongName()).to.equal('Animalia Chordata Mammalia Carnivora Canis familiaris');
+					loggingEventedDog.emit('log', 'w000f!!');
+					// check instance of
+					expect(loggingEventedDog).to.be.an.instanceOf(EventEmitter); // works because it is at the root of the chain
+					expect(Trope.instanceOf(loggingEventedDog, Logger)).to.be.true;
+					expect(Trope.instanceOf(loggingEventedDog, Animal)).to.be.true;
+					expect(Trope.instanceOf(loggingEventedDog, Organism)).to.be.true;
+					console.log(loggingEventedDog);
+				} catch (err) {
+					done(err);
+				}
+			});
 		});
 	});
 

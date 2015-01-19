@@ -170,8 +170,12 @@ var Trope = (function () {
 						useSuper: false
 					});
 				}
+			} else {
+				trope = new Trope({
+					prototype: trope,
+					useSuper: false
+				});
 			}
-			//TODO if trope is not a func
 		}
 		return trope;
 	}
@@ -420,24 +424,17 @@ var Trope = (function () {
 		}
 		// trope.inherits always a Trope object or null
 		trope.inherits = (function () {
+			var i;
+			var inheritHead;
 			if (def.inherits) {
-				if (def.inherits instanceof Trope) {
-					return def.inherits;
-				} else if (def.inherits.trope) {
-					return def.inherits.trope;
-				} else {
-					if (typeof def.inherits === FUNCTION) {
-						return new Trope({
-							constructor: def.inherits,
-							prototype: def.inherits.prototype,
-							useSuper: false
-						});
-					} else {
-						return new Trope({
-							prototype: def.inherits,
-							useSuper: false
-						});
+				if (Array.isArray(def.inherits) && def.inherits.length) {
+					inheritHead = ensureIsATrope(def.inherits[0]);
+					for (i=1; i<def.inherits.length; i++) {
+						inheritHead = inheritHead.createChildTrope(ensureIsATrope(def.inherits[i]).getDefinition());
 					}
+					return inheritHead;
+				} else {
+					return ensureIsATrope(def.inherits);
 				}
 			} else {
 				return null;
