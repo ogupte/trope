@@ -812,7 +812,6 @@ describe('Trope Usage', function () {
 					expect(Trope.instanceOf(loggingEventedDog, Logger)).to.be.true;
 					expect(Trope.instanceOf(loggingEventedDog, Animal)).to.be.true;
 					expect(Trope.instanceOf(loggingEventedDog, Organism)).to.be.true;
-					console.log(loggingEventedDog);
 				} catch (err) {
 					done(err);
 				}
