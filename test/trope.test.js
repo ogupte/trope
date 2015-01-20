@@ -816,6 +816,30 @@ describe('Trope Usage', function () {
 					done(err);
 				}
 			});
+			
+			it('should support multiple inheritance by passing an array of tropes into interpret function', function (done) {
+				try {
+					var LoggingEventedDog = Trope.interpret([EventEmitter, Logger, Dog], function LoggingEventedDog (name) {
+						this.super.as(EventEmitter)();
+						this.super.as(Logger)(name);
+						this.super.as(Dog)(name);
+					});
+					var loggingEventedDog = new LoggingEventedDog('Pumbaa');
+					loggingEventedDog.on('log', function (msg) {
+						expect(msg).to.equal('w000f!!');
+						done();
+					});
+					expect(loggingEventedDog.getLongName()).to.equal('Animalia Chordata Mammalia Carnivora Canis familiaris');
+					loggingEventedDog.emit('log', 'w000f!!');
+					// check instance of
+					expect(loggingEventedDog).to.be.an.instanceOf(EventEmitter); // works because it is at the root of the chain
+					expect(Trope.instanceOf(loggingEventedDog, Logger)).to.be.true;
+					expect(Trope.instanceOf(loggingEventedDog, Animal)).to.be.true;
+					expect(Trope.instanceOf(loggingEventedDog, Organism)).to.be.true;
+				} catch (err) {
+					done(err);
+				}
+			});
 		});
 	});
 
@@ -2419,7 +2443,7 @@ describe('Trope Usage', function () {
 
 				it('should work (inheritance-multiple-basic)', function () {
 					// [EXAMPLE]
-					var EventedLogger = Trope(Logger).turn(EventEmitter);
+					var EventedLogger = Trope([Logger, EventEmitter]);
 
 					var eventedLogger = EventedLogger.create();
 					eventedLogger.on('logme', function (msg) {
@@ -2460,10 +2484,7 @@ describe('Trope Usage', function () {
 				it('should work (inheritance-multiple-extended)', function () {
 					// [EXAMPLE]
 					// Use `Logger`, `EventEmitter`, and `Cat` to define something completely different
-					var LoggingEventedCat = Trope(Logger).
-						turn(EventEmitter).
-						turn(Cat).
-						turn(function (name) { // init function
+					var LoggingEventedCat = Trope([Logger, EventEmitter, Cat], function (name) { // init function
 							this.super.as(Cat)(name);
 							this.on('meow', function (sound) {
 								console.log(this.name + ': ' + sound);

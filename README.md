@@ -169,11 +169,11 @@ var EventEmitter = Trope({
 ```
 They can be combined to create a new Trope `Eventedlogger`.
 ```javascript
-var EventedLogger = Trope(Logger).turn(EventEmitter);
+var EventedLogger = Trope([Logger, EventEmitter]);
 
 var eventedLogger = EventedLogger.create();
 eventedLogger.on('logme', function (msg) {
-    eventedLogger.log('LOGME: ' + msg);
+	eventedLogger.log('LOGME: ' + msg);
 });
 eventedLogger.fire('logme', 'hello'); // logs 'LOGME: hello'
 eventedLogger.fire('logme', 'world'); // logs 'LOGME: world'
@@ -197,20 +197,17 @@ cat.vocalize(); // 'Meow!'
 <a id="LoggingEventedCat"></a>
 Now inherit from `Logger`, `EventEmitter`, and `Cat` while passing in a new definitiong to create something completely different.
 ```javascript
-var LoggingEventedCat = Trope(Logger).
-    turn(EventEmitter).
-    turn(Cat).
-    turn(function (name) { // init function
-        this.super.as(Cat)(name); // call the init function for `Cat`
-        this.on('meow', function (sound) {
-            console.log(this.name + ': ' + sound);
-        });
-    },{ // overload the `vocalize` method inherited from `Cat`
-        vocalize: function (sound) {
-            sound = sound || this.super.as(Cat)(); // call the overloaded method
-            this.fire('meow', sound);
-        }
-    });
+var LoggingEventedCat = Trope([Logger, EventEmitter, Cat], function (name) { // init function
+		this.super.as(Cat)(name);
+		this.on('meow', function (sound) {
+			console.log(this.name + ': ' + sound);
+		});
+	},{ // overload the `vocalize` method inherited from `Cat`
+		vocalize: function (sound) {
+			sound = sound || this.super.as(Cat)();
+			this.fire('meow', sound);
+		}
+	});
 
 var loggingEventedCat = LoggingEventedCat.create('Raja');
 loggingEventedCat.vocalize(); // logs 'Raja: Meow!'

@@ -770,8 +770,19 @@ var Trope = (function () {
 				} else {
 					def.constructor = arg;
 				}
-			}if (typeof arg === OBJECT) {
-				if (isProtoDefined || arg.__TROPEDEF__) {
+			} else if (typeof arg === OBJECT) {
+				if (Array.isArray(arg)) {
+					if (def.inherits) {
+						if (Array.isArray(def.inherits)) {
+							// def.inherits.splice(0, 0, arg);
+							def.inherits = def.inherits.concat(arg);
+						} else {
+							def.inherits = [def.inherits].concat(arg);
+						}
+					} else {
+						def.inherits = arg;
+					}
+				} else if (isProtoDefined || arg.__TROPEDEF__) {
 					def = mix(def, arg);
 				} else {
 					def.prototype = arg;
