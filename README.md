@@ -195,7 +195,7 @@ var cat = Cat.create('Raja');
 cat.vocalize(); // 'Meow!'
 ```
 <a id="LoggingEventedCat"></a>
-Now inherit from `Logger`, `EventEmitter`, and `Cat` while passing in a new definitiong to create something completely different.
+Now inherit from `Logger`, `EventEmitter`, and `Cat` while passing in a new definition to create something completely different.
 ```javascript
 var LoggingEventedCat = Trope([Logger, EventEmitter, Cat], function (name) { // init function
 		this.super.as(Cat)(name);
