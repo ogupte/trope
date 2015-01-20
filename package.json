@@ -1,6 +1,6 @@
 {
   "name": "trope",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Trope is a simple interface for JavaScript inheritance that provides some extra, useful capabilities.",
   "author": {
     "name": "Oliver Gupte",
