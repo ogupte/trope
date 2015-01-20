@@ -66,8 +66,8 @@ _alias:_ [`init`](#module-define-option-init)
 _alias:_ [`inherits`](#module-define-option-inherits)
 
 <a id="module-define-option-inherits"></a>
-- `inherits` [Trope/object/function]<br />
-a Trope, object, or constructor function which the newly defined trope will inherit from. If it's not a trope, it will be converted into a trope first.<br />
+- `inherits` [Trope/object/function/Array]<br />
+a Trope, object, or constructor function which the newly defined trope will inherit from. If it's not a trope, it will be converted into a trope first. If an Array, it will inherit from all elements of the Array.<br />
 _alias:_ [`extends`](#module-define-option-extends)
 
 <a id="module-define-option-init"></a>
@@ -120,7 +120,7 @@ Trope.interpret([...definitionSetting])
 ```
 #### Parameters
 ##### definitionSetting
-This value can be an `object`, a `function`, a `string`, or another Trope. There can be any number of these as arguments.
+This value can be an `object`, a `function`, a `string`, another Trope, or an `Array` of other Tropes. There can be any number of these as arguments.
 
 As an `object`, it will be set as the `prototype` in the Trope definition. If more than one `object` is passed in, only the last one will be considered the prototype. The other `object` arguments will be combined into the trope definition. Use this leading `object` to pass in custom configurations to the trope (the same that would be passed into [`Trope.define()`](#module-define))
 
@@ -129,6 +129,8 @@ As a `function`, it will be set as the `init`/`constructor` function in the Trop
 As a `string`, it will be used as the `type` in the Trope definition.
 
 As a Trope, the given trope's definition will be combined into the current trope's definition. If no other argument is passed in, the given trope will simply be returned (`Trope.interpret(SomeTrope) === SomeTrope`).
+
+As an `Array` of Tropes, the new Trope will inherit from all the Tropes passed in to the array.
 
 #### Description
 [`Trope.interpret()`](#module-interpret) can be used like [`Trope.define()`](#module-define) to create a Trope.
