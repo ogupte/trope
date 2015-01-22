@@ -1,7 +1,7 @@
 {
   "name": "trope",
   "main": "trope.js",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Trope is a simple interface for JavaScript inheritance that provides some extra, useful capabilities.",
   "moduleType": [
     "globals",
