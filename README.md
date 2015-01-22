@@ -20,6 +20,8 @@ Trope is a simple interface for JavaScript inheritance that provides some extra,
 * [Inheritance](https://github.com/ogupte/trope#inheritance)
 * [Multiple Inheritance](https://github.com/ogupte/trope#multiple-inheritance)
 * [Native JS Compatibility](https://github.com/ogupte/trope#native-js-compatibility)
+* [Selfish Definitions](https://github.com/ogupte/trope#selfish-definitions)
+<a id="selfish-definitions"></a>
 
 <a id="object-factories"></a>
 #### Object factories
@@ -248,6 +250,27 @@ var quadrilateral = Quadrilateral.create();
 quadrilateral instanceof Quadrilateral;
 quadrilateral instanceof Shape;
 quadrilateral.getSides(); // 4
+```
+
+<a id="selfish-definitions"></a>
+#### Selfish Definitions
+Trope allows for different styles in defining prototypes, classes, or factories. `selfish` is a style where each method can be explicitly passed the object reference as the first parameter. This is useful if you find yourself prefix your methods logic with `var self = this` or `var that = this`. It's also a style that Python developers will be very familiar with ([Python classes](https://docs.python.org/2/tutorial/classes.html)).
+```javascript
+var Greeter = Trope({
+	selfish: true
+}, function Greeter (self, name) {
+	self.name = name;
+}, {
+	setName: function (self, name) {
+		self.name = name;
+	},
+	sayHello: function (self) {
+		return 'Hello, ' + self.name + '!';
+	}
+});
+
+var greeter = Greeter('Russell');
+greeter.sayHello(); // "Hello, Russell!"
 ```
 
 ## Description

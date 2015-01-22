@@ -407,6 +407,8 @@ var Trope = (function () {
 				} else {
 					return def.constructor;
 				}
+			} else if (def.__init__) {
+				return def.__init__;
 			} else if (def.init) {
 				return def.init;
 			} else if (trope.proto.hasOwnProperty && trope.proto.hasOwnProperty(CONSTRUCTOR)) {
