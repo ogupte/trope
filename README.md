@@ -268,7 +268,9 @@ var Greeter = Trope({
 	}
 });
 
-var greeter = Greeter('Russell');
+var greeter = Greeter('Bertrand');
+greeter.sayHello(); // "Hello, Bertrand!"
+greeter.setName('Russell');
 greeter.sayHello(); // "Hello, Russell!"
 ```
 
