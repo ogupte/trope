@@ -411,6 +411,8 @@ var Trope = (function () {
 				return def.__init__;
 			} else if (def.init) {
 				return def.init;
+			} else if (trope.proto.hasOwnProperty && trope.proto.hasOwnProperty('__init__')) {
+				return trope.proto.__init__;
 			} else if (trope.proto.hasOwnProperty && trope.proto.hasOwnProperty(CONSTRUCTOR)) {
 				return trope.proto.constructor;
 			} else if (trope.proto instanceof Object) {
@@ -816,6 +818,13 @@ var Trope = (function () {
 	}
 	set('interpret', interpret);
 	set('defaultAction', interpret);
+
+	function selfish () {
+		var def = interpretDefinition.apply(null, arguments);
+		def.selfish = true;
+		return define(def);
+	}
+	set('selfish', selfish);
 
 	applyAliases(module.exports, INTERPRET_ALIAS, interpret);
 	applyAliases(module.exports, DEFINE_ALIAS, define);

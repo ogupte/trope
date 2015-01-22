@@ -255,16 +255,37 @@ quadrilateral.getSides(); // 4
 #### Selfish Definitions
 Trope allows for different styles in defining prototypes, classes, or factories. `selfish` is a style where each method can be explicitly passed the object reference as the first parameter. This is useful if you find yourself typing `var self = this` or `var that = this` at the beginning of every method. It's also a style that Python developers will be very familiar with ([Python classes](https://docs.python.org/2/tutorial/classes.html)).
 ```javascript
-var Greeter = Trope({
-	selfish: true
-}, function Greeter (self, name) {
-	self.name = name;
-}, {
+var Greeter = Trope.selfish({
+	__init__: function (self, name) {
+		self.name = name;
+	},
 	setName: function (self, name) {
 		self.name = name;
 	},
 	sayHello: function (self) {
 		return 'Hello, ' + self.name + '!';
+	}
+});
+
+var greeter = Greeter('Bertrand');
+greeter.sayHello(); // "Hello, Bertrand!"
+greeter.setName('Russell');
+greeter.sayHello(); // "Hello, Russell!"
+```
+Note that `Trope.selfish` will just set the `selfish` flag on the Trope definition and accept the same arguments as the [`Trope`](https://github.com/ogupte/trope/blob/master/trope-api.md#module-trope) or [`Trope.interpret`](https://github.com/ogupte/trope/blob/master/trope-api.md#module-interpret) functions. An equivalent definition with [`Trope.define`](https://github.com/ogupte/trope/blob/master/trope-api.md#module-define) could look like this:
+```javascript
+var Greeter = Trope.define({
+	selfish: true,
+	constructor: function Greeter (self, name) {
+		self.name = name;
+	},
+	prototype: {
+		setName: function (self, name) {
+			self.name = name;
+		},
+		sayHello: function (self) {
+			return 'Hello, ' + self.name + '!';
+		}
 	}
 });
 

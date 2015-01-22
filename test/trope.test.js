@@ -2569,6 +2569,59 @@ describe('Trope Usage', function () {
 					expect(quadrilateral.getSides()).to.equal(4);
 				});
 			});
+
+			describe('Selfish Definitions', function () {
+				it('should work (selfish-definitions-interpret)', function () {
+					// [EXAMPLE]
+					// Native JS constructor Shape
+					var Greeter = Trope.selfish({
+						__init__: function (self, name) {
+							self.name = name;
+						},
+						setName: function (self, name) {
+							self.name = name;
+						},
+						sayHello: function (self) {
+							return 'Hello, ' + self.name + '!';
+						}
+					});
+
+					var greeter = Greeter('Bertrand');
+					expect(greeter).to.be.an.instanceOf(Greeter); // [CHECK]
+					greeter.sayHello(); // "Hello, Bertrand!"
+					expect(greeter.sayHello()).to.equal('Hello, Bertrand!'); // [CHECK]
+					greeter.setName('Russell');
+					greeter.sayHello(); // "Hello, Russell!"
+					expect(greeter.sayHello()).to.equal('Hello, Russell!'); // [CHECK]
+				});
+
+				it('should work (selfish-definitions-define)', function () {
+					// [EXAMPLE]
+					// Native JS constructor Shape
+					var Greeter = Trope.define({
+						selfish: true,
+						constructor: function Greeter (self, name) {
+							self.name = name;
+						},
+						prototype: {
+							setName: function (self, name) {
+								self.name = name;
+							},
+							sayHello: function (self) {
+								return 'Hello, ' + self.name + '!';
+							}
+						}
+					});
+
+					var greeter = Greeter('Bertrand');
+					expect(greeter).to.be.an.instanceOf(Greeter); // [CHECK]
+					greeter.sayHello(); // "Hello, Bertrand!"
+					expect(greeter.sayHello()).to.equal('Hello, Bertrand!'); // [CHECK]
+					greeter.setName('Russell');
+					greeter.sayHello(); // "Hello, Russell!"
+					expect(greeter.sayHello()).to.equal('Hello, Russell!'); // [CHECK]
+				});
+			});
 		});
 	});
 });
