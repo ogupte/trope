@@ -1,7 +1,7 @@
 {
   "name": "trope",
-  "version": "1.0.4",
-  "description": "Trope is a simple interface for JavaScript inheritance that provides some extra, useful capabilities.",
+  "version": "1.0.5",
+  "description": "Object-oriented JS for everyone - Take full advantage of JavaScript prototypes plus extras (private state, multiple inheritance, and super functions).",
   "author": {
     "name": "Oliver Gupte",
     "url": "https://www.linkedin.com/in/olivergupte/"
@@ -15,12 +15,23 @@
   "bugs": "https://github.com/ogupte/trope/issues",
   "keywords": [
     "prototype",
+	 "object",
+	 "oriented",
+	 "oo",
+	 "oop",
     "super",
     "class",
     "extend",
     "private",
+	 "privacy",
     "multiple",
-    "inheritance"
+    "inheritance",
+    "inherit",
+	 "self",
+	 "python",
+	 "instance",
+	 "polymorphism",
+	 "state"
   ],
   "main": "trope.js",
   "scripts": {

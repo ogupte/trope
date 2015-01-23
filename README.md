@@ -67,7 +67,7 @@ greeter = new Greeter('Bertrand');
 #### Private properties
 `privacy` mode can be enabled to prevent object properties from being accessed by an outside context.
 ```javascript
-var Greeter = Trope({ privacy: true }, function (name) {
+var Greeter = Trope.privacy(function (name) {
     this.setName(name);
 },{
     setName: function (name) {
@@ -84,7 +84,7 @@ greeter.sayHello(); // 'Hello, Bertrand!'
 ```
 Public properties can still be set in `privacy` mode by setting them on `this.exports`.
 ```javascript
-var Greeter = Trope({ privacy: true }, function (name) {
+var Greeter = Trope.privacy(function (name) {
     this.setName(name);
 },{
     setName: function (name) {
@@ -100,6 +100,24 @@ var greeter = Greeter.create('Bertrand');
 greeter.name; // undefined
 greeter.exposedName; // 'Bertrand'
 greeter.sayHello(); // 'Hello, Bertrand!'
+```
+`Trope.privacy` is the easiest way to define a trope in privacy mode, but you also be explicit in your definition with [`Trope.define`](https://github.com/ogupte/trope/blob/master/trope-api.md#module-define):
+```javascript
+var Greeter = Trope.define({
+	privacy: true,
+	init: function (name) {
+		 this.setName(name);
+	},
+	prototype: {
+		 setName: function (name) {
+			  this.name = name;
+			  this.exports.exposedName = name;
+		 },
+		 sayHello: function () {
+			  return 'Hello, ' + this.name + '!';
+		 }
+	}
+});
 ```
 See how [private properties](https://github.com/ogupte/trope#description-private-members) are implemented in Trope.
 

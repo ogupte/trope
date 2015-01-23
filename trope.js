@@ -778,7 +778,6 @@ var Trope = (function () {
 				if (Array.isArray(arg)) {
 					if (def.inherits) {
 						if (Array.isArray(def.inherits)) {
-							// def.inherits.splice(0, 0, arg);
 							def.inherits = def.inherits.concat(arg);
 						} else {
 							def.inherits = [def.inherits].concat(arg);
@@ -825,6 +824,13 @@ var Trope = (function () {
 		return define(def);
 	}
 	set('selfish', selfish);
+
+	function privacy () {
+		var def = interpretDefinition.apply(null, arguments);
+		def.privacy = true;
+		return define(def);
+	}
+	set('privacy', privacy);
 
 	applyAliases(module.exports, INTERPRET_ALIAS, interpret);
 	applyAliases(module.exports, DEFINE_ALIAS, define);
