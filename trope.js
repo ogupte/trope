@@ -493,9 +493,6 @@ var Trope = (function () {
 			if (def.privacy !== undefined) {
 				return def.privacy; //use-defined takes top priority
 			}
-			if (trope.inherits) {
-				return trope.inherits.isPrivate; //if it inherits, default to parent value
-			}
 			return false; //defaults to false
 		}());
 

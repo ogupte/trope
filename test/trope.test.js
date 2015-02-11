@@ -1160,10 +1160,10 @@ describe('Trope Usage', function () {
 				var ATrope = new Trope.Trope({});
 				expect(ATrope).to.have.property('isPrivate', false);
 			});
-			it('should default to whatever value is in the definition the Trope inherits from', function () {
+			it('should default to false even if the parent definition has privacy: true', function () {
 				var ATrope = new Trope.Trope({ inherits: TropeWithPrivacy });
 				var BTrope = new Trope.Trope({ inherits: TropeWithoutPrivacy });
-				expect(ATrope).to.have.property('isPrivate', true);
+				expect(ATrope).to.have.property('isPrivate', false);
 				expect(BTrope).to.have.property('isPrivate', false);
 			});
 		});
