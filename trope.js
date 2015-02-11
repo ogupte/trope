@@ -839,6 +839,13 @@ var Trope = (function () {
 	}
 	set('privacy', privacy);
 
+	function autoinit () {
+		var def = interpretDefinition.apply(null, arguments);
+		def.autoinit = true;
+		return define(def);
+	}
+	set('autoinit', autoinit);
+
 	applyAliases(module.exports, INTERPRET_ALIAS, interpret);
 	applyAliases(module.exports, DEFINE_ALIAS, define);
 }());
