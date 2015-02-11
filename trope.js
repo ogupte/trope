@@ -672,6 +672,17 @@ var Trope = (function () {
 							return inherits;
 						} else if (inherits.trope) {
 							return inherits.trope;
+						} else if (Array.isArray(inherits)) {
+							if (inherits.length === 0) {
+								return null;
+							}
+							var inheritsArray = inherits.slice();
+							var tailTrope = ensureIsATrope(inheritsArray.pop());
+							if (inheritsArray.length === 0) {
+								return tailTrope;
+							} else {
+								return new Trope(tailTrope.getDefinition({ inherits: inheritsArray }));
+							}
 						} else {
 							if (typeof inherits === FUNCTION) {
 								return new Trope({
@@ -681,8 +692,7 @@ var Trope = (function () {
 								});
 							} else {
 								return new Trope({
-									prototype: inherits,
-									useSuper: false
+									inherits: inherits
 								});
 							}
 						}
