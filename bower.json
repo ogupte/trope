@@ -1,7 +1,7 @@
 {
   "name": "trope",
   "main": "trope.js",
-  "version": "1.0.5",
+  "version": "1.1.:",
   "description": "Object-oriented JS for everyone - Take full advantage of JavaScript prototypes plus extras (private state, multiple inheritance, and super functions).",
   "moduleType": [
     "globals",
