@@ -159,6 +159,9 @@ var Trope = (function () {
 	]);
 
 	function ensureIsATrope (trope) {
+		if (trope.isATrope) {
+			return trope;
+		}
 		if (!(trope instanceof Trope)) {
 			if (typeof trope === FUNCTION) {
 				if (trope.trope) {
@@ -383,7 +386,7 @@ var Trope = (function () {
 		};
 
 		var trope = this;
-
+		trope.isATrope = true;
 		trope.def = def;
 
 		trope.proto = (function () {
