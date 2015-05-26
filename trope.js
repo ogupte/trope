@@ -598,6 +598,14 @@ var Trope = (function () {
 								return superFunction;
 							}
 						});
+
+						// alias `super` as `_super` to prevent reserved word warnings in JS validators
+						Object.defineProperty(pubCtx, '_super', {
+							enumerable: false,
+							get: function () {
+								return pubCtx['super'];
+							}
+						});
 					}
 				}
 

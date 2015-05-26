@@ -131,7 +131,7 @@ var Animal = Trope({
     }
 });
 ```
-Inherit from base definitions by chaining off of them with `turn`, or `proto`, or `extend` and passing in a new definition. Functions can be overloaded and the original can be called with `this.super()`.
+Inherit from base definitions by chaining off of them with `turn`, or `proto`, or `extend` and passing in a new definition. Functions can be overloaded and the original can be called with `this.super()` (or `this._super()`).
 ```javascript
 var Vertebrate = Animal.turn({
     getLongName: function () {
